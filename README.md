@@ -13,11 +13,13 @@ A personal home dashboard — recipes, shopping list, and a to-do list — rebui
 - `js/app.js` — hash-based router wiring the bottom nav to each view
 - `data/*.json` — seed data (recipes, shopping list, tasks, sections, units, daily messages)
 
-## Running locally
+## Using the app
 
-**Easiest:** double-click `run.bat`. It starts a local server and opens the app in your browser automatically. Close its console window to stop the server.
+Just open it in a browser — no install or server required: **https://noahjensen17.github.io/Food-Management/**
 
-No build step is required otherwise — serve the folder with any static file server, e.g. `py -m http.server 5173` or `npx serve .`.
+## Running locally (optional)
+
+No build step is required — serve the folder with any static file server, e.g. `py -m http.server 5173` or `npx serve .`, then open the printed `http://localhost` URL.
 
 (Opening `index.html` directly via `file://` will fail because the seed data is loaded with `fetch()`, which requires `http://`.)
 
