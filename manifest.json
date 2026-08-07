@@ -1,0 +1,9 @@
+{
+  "name": "Home",
+  "short_name": "Home",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#fffaf7",
+  "theme_color": "#f65810",
+  "icons": []
+}

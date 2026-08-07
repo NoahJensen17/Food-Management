@@ -1,0 +1,25 @@
+{
+  "_readme": "The original Power App had 250 personal encouragement messages stored in Dataverse (cloud), which were not included in the exported .zip file, so their real text could not be recovered. These are placeholder messages so the feature works out of the box. Replace/expand this list with your real messages whenever you're ready — the app picks one at random each time Home loads.",
+  "messages": [
+    "Today is a gift. Make the most of it.",
+    "You are capable of amazing things.",
+    "Small steps still move you forward.",
+    "Take a deep breath. You've got this.",
+    "Be proud of how far you've come.",
+    "Someone out there is grateful for you today.",
+    "Rest is productive too.",
+    "Your effort matters, even when it's quiet.",
+    "Choose joy in the little things today.",
+    "You are loved more than you know.",
+    "Progress, not perfection.",
+    "Today's a good day to be kind to yourself.",
+    "Every day is a fresh start.",
+    "You make the ordinary days better.",
+    "Trust the process, it's working.",
+    "You are exactly where you need to be.",
+    "Let today be lighter than yesterday.",
+    "You bring good things wherever you go.",
+    "Keep going, it's working.",
+    "You are stronger than you think."
+  ]
+}

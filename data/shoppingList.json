@@ -1,0 +1,6 @@
+[
+  { "id": "s1", "item": "Bananas", "quantity": 6, "unit": "Cnt", "section": "Produce", "active": true },
+  { "id": "s2", "item": "Chicken Breast", "quantity": 2, "unit": "Bg", "section": "Meats", "active": true },
+  { "id": "s3", "item": "Paper Towels", "quantity": 1, "unit": "Pk", "section": "Misc", "active": true },
+  { "id": "s4", "item": "Milk", "quantity": 1, "unit": "Jar", "section": "Dairy/Eggs", "active": false }
+]

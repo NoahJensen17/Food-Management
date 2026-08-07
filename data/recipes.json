@@ -1,0 +1,40 @@
+[
+  {
+    "id": "r1",
+    "recipe": "Sunday Morning Pancakes",
+    "mealTime": "Breakfast",
+    "favorite": true,
+    "ingredients": [
+      { "qty": 2, "text": "Cups flour" },
+      { "qty": 2, "text": "Eggs" },
+      { "qty": 1, "text": "Cup milk" },
+      { "qty": 2, "text": "Tbsp sugar" },
+      { "qty": 1, "text": "Tsp baking powder" }
+    ],
+    "instructions": [
+      "Whisk dry ingredients together in a large bowl.",
+      "Add eggs and milk, stir until just combined.",
+      "Pour 1/4 cup batter per pancake onto a hot, greased griddle.",
+      "Flip when bubbles form on the surface, cook until golden."
+    ]
+  },
+  {
+    "id": "r2",
+    "recipe": "Weeknight Chicken Stir-Fry",
+    "mealTime": "Dinner",
+    "favorite": false,
+    "ingredients": [
+      { "qty": 1, "text": "Lb chicken breast, sliced" },
+      { "qty": 3, "text": "Cups mixed vegetables" },
+      { "qty": 3, "text": "Tbsp soy sauce" },
+      { "qty": 1, "text": "Clove garlic, minced" },
+      { "qty": 2, "text": "Cups cooked rice" }
+    ],
+    "instructions": [
+      "Cook chicken in a hot pan until browned, set aside.",
+      "Stir-fry vegetables and garlic until crisp-tender.",
+      "Add chicken back in with soy sauce, toss to coat.",
+      "Serve over rice."
+    ]
+  }
+]
