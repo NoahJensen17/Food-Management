@@ -11,6 +11,9 @@ window.Store = (function () {
     units: "data/units.json",
     prompts: "data/prompts.json"
   };
+  // Tracks which keys have already been checked for new seed items this page load,
+  // so the merge below runs once per key per session rather than on every Store call.
+  const mergedThisSession = new Set();
 
   function readLocal(key) {
     const raw = localStorage.getItem(PREFIX + key);
@@ -21,10 +24,50 @@ window.Store = (function () {
     localStorage.setItem(PREFIX + key, JSON.stringify(value));
   }
 
+  function readSeededIds(key) {
+    const raw = localStorage.getItem(PREFIX + key + ":seededIds");
+    return raw ? new Set(JSON.parse(raw)) : null;
+  }
+
+  function writeSeededIds(key, idSet) {
+    localStorage.setItem(PREFIX + key + ":seededIds", JSON.stringify([...idSet]));
+  }
+
   async function fetchSeed(key) {
     const res = await fetch(SEED_FILES[key]);
     if (!res.ok) throw new Error(`Failed to load seed data for ${key}`);
     return res.json();
+  }
+
+  function isIdCollection(arr) {
+    return Array.isArray(arr) && arr.length > 0 && typeof arr[0] === "object" && arr[0] !== null && "id" in arr[0];
+  }
+
+  // Folds newly-added entries from the seed JSON into what's already stored locally,
+  // keyed by id, so editing a seed file shows up on next reload without wiping any
+  // edits/checks/deletions the user already made. A per-key "seededIds" tombstone set
+  // remembers every id ever seen so a deleted seed item is never silently re-added.
+  async function mergeNewSeedItems(key, localValue) {
+    const seed = await fetchSeed(key);
+    const seedValue = key === "prompts" ? seed.messages : seed;
+
+    if (isIdCollection(seedValue)) {
+      const seededIds = readSeededIds(key) || new Set(localValue.map((i) => i.id));
+      const newItems = seedValue.filter((i) => i.id && !seededIds.has(i.id));
+      if (newItems.length) {
+        localValue = [...localValue, ...newItems];
+        writeLocal(key, localValue);
+      }
+      seedValue.forEach((i) => seededIds.add(i.id));
+      writeSeededIds(key, seededIds);
+    } else if (Array.isArray(seedValue)) {
+      const additions = seedValue.filter((v) => !localValue.includes(v));
+      if (additions.length) {
+        localValue = [...localValue, ...additions];
+        writeLocal(key, localValue);
+      }
+    }
+    return localValue;
   }
 
   async function ensureSeeded(key) {
@@ -33,6 +76,13 @@ window.Store = (function () {
       const seed = await fetchSeed(key);
       value = key === "prompts" ? seed.messages : seed;
       writeLocal(key, value);
+      if (isIdCollection(value)) writeSeededIds(key, new Set(value.map((i) => i.id)));
+      mergedThisSession.add(key);
+      return value;
+    }
+    if (!mergedThisSession.has(key)) {
+      mergedThisSession.add(key);
+      value = await mergeNewSeedItems(key, value);
     }
     return value;
   }
