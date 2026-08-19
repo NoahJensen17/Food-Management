@@ -27,17 +27,11 @@ window.ViewHome = (function () {
         <div class="card-title">Verse of the Day</div>
         <div id="verse-body">Loading&hellip;</div>
       </div>
-
-      <div class="card">
-        <div class="card-title">Connection</div>
-        <div><span class="status-dot" id="status-dot"></span><span id="status-text">Checking&hellip;</span></div>
-      </div>
     `;
 
     document.getElementById("refresh-weather").addEventListener("click", loadWeather);
     loadWeather();
     loadVerse();
-    checkConnection();
   }
 
   async function loadWeather() {
@@ -65,14 +59,6 @@ window.ViewHome = (function () {
     } catch (e) {
       body.textContent = "Verse unavailable right now.";
     }
-  }
-
-  function checkConnection() {
-    const dot = document.getElementById("status-dot");
-    const text = document.getElementById("status-text");
-    const online = navigator.onLine;
-    dot.classList.toggle("offline", !online);
-    text.textContent = online ? "Connected" : "Offline";
   }
 
   return { render };

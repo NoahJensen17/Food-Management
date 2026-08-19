@@ -218,19 +218,6 @@ main {
   font-size: 14px;
 }
 
-.status-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  display: inline-block;
-  margin-right: 6px;
-  background: var(--success);
-}
-
-.status-dot.offline {
-  background: var(--danger);
-}
-
 .verse-text {
   font-style: italic;
   line-height: 1.5;
