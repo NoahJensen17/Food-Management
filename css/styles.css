@@ -434,6 +434,19 @@ main {
   flex: 1;
 }
 
+.inline-fields > .field--qty {
+  flex: 0 0 80px;
+}
+
+.inline-fields > .field--grow {
+  flex: 2;
+}
+
+.field--item input {
+  font-size: 17px;
+  padding: 12px 14px;
+}
+
 .btn {
   display: inline-flex;
   align-items: center;

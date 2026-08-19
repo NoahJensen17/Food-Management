@@ -3,10 +3,9 @@ window.ViewShopping = (function () {
   let mode = "list"; // "list" | "add" | "edit"
 
   async function render() {
-    const [items, sections, units] = await Promise.all([
+    const [items, sections] = await Promise.all([
       window.Store.getShoppingList(),
-      window.Store.getSections(),
-      window.Store.getUnits()
+      window.Store.getSections()
     ]);
 
     el().innerHTML = `
@@ -16,35 +15,28 @@ window.ViewShopping = (function () {
         ${mode !== "add" ? `<button class="btn-icon" id="btn-edit" title="Edit items">${iconEdit()}</button>` : ""}
         <button class="btn-icon danger" id="btn-clear" title="Clear checked items">${iconTrash()}</button>
       </div>
-      ${mode === "add" ? renderAddForm(sections, units) : ""}
+      ${mode === "add" ? renderAddForm(sections) : ""}
       ${renderList(items)}
     `;
 
-    wireToolbar(sections, units);
+    wireToolbar(sections);
     wireList(items);
   }
 
-  function renderAddForm(sections, units) {
+  function renderAddForm(sections) {
     return `
       <div class="card">
         <div class="card-title">Add Item</div>
-        <div class="field">
+        <div class="field field--item">
           <label for="add-item">Item</label>
           <input type="text" id="add-item" placeholder="Ex: Beans" />
         </div>
         <div class="inline-fields">
-          <div class="field">
+          <div class="field field--qty">
             <label for="add-qty">Qty</label>
             <input type="number" id="add-qty" value="1" min="1" />
           </div>
-          <div class="field">
-            <label for="add-unit">Unit</label>
-            <select id="add-unit">
-              <option value=""></option>
-              ${units.map((u) => `<option value="${u}">${u}</option>`).join("")}
-            </select>
-          </div>
-          <div class="field">
+          <div class="field field--grow">
             <label for="add-section">Store Section</label>
             <select id="add-section">
               ${sections.map((s) => `<option value="${s}">${s}</option>`).join("")}
@@ -81,7 +73,6 @@ window.ViewShopping = (function () {
       return `
         <div class="list-row" data-id="${item.id}">
           <input type="number" class="edit-qty" value="${item.quantity}" style="width:60px" />
-          <input type="text" class="edit-unit" value="${item.unit || ""}" style="width:70px" />
           <input type="text" class="edit-item" value="${item.item}" style="flex:1" />
           <button class="btn-icon" data-action="save-edit" title="Save">${iconCheck()}</button>
         </div>
@@ -91,14 +82,14 @@ window.ViewShopping = (function () {
       <div class="list-row ${checked ? "checked" : ""}" data-id="${item.id}">
         <button class="checkbox ${checked ? "checked" : ""}" data-action="toggle"></button>
         <div>
-          <div class="list-row__title">${item.quantity} ${item.unit || ""} ${item.item}</div>
+          <div class="list-row__title">${item.quantity} ${item.item}</div>
           <div class="list-row__meta">${item.section}</div>
         </div>
       </div>
     `;
   }
 
-  function wireToolbar(sections, units) {
+  function wireToolbar(sections) {
     const btnAdd = document.getElementById("btn-add");
     const btnEdit = document.getElementById("btn-edit");
     const btnView = document.getElementById("btn-view");
@@ -118,7 +109,6 @@ window.ViewShopping = (function () {
       await window.Store.addShoppingItem({
         item: itemText,
         quantity: Number(document.getElementById("add-qty").value) || 1,
-        unit: document.getElementById("add-unit").value,
         section: document.getElementById("add-section").value,
         active: true
       });
@@ -151,7 +141,6 @@ window.ViewShopping = (function () {
         const id = row.dataset.id;
         await window.Store.updateShoppingItem(id, {
           item: row.querySelector(".edit-item").value.trim(),
-          unit: row.querySelector(".edit-unit").value.trim(),
           quantity: Number(row.querySelector(".edit-qty").value) || 1
         });
         render();

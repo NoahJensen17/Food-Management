@@ -1,54 +1,310 @@
 [
-  { "id": "s1", "item": "Bananas", "quantity": 6, "unit": "Cnt", "section": "Produce", "active": true },
-  { "id": "s2", "item": "Chicken Breast", "quantity": 2, "unit": "Bg", "section": "Meats", "active": true },
-  { "id": "s3", "item": "Paper Towels", "quantity": 1, "unit": "Pk", "section": "Misc", "active": true },
-  { "id": "s4", "item": "Milk", "quantity": 1, "unit": "Jar", "section": "Dairy/Eggs", "active": false },
-
-  { "id": "s5", "item": "Lettuce", "quantity": 1, "unit": "Cnt", "section": "Produce", "active": true },
-  { "id": "s6", "item": "Yellow Onions", "quantity": 4, "unit": "Cnt", "section": "Produce", "active": true },
-  { "id": "s7", "item": "Garlic", "quantity": 1, "unit": "Cnt", "section": "Produce", "active": true },
-  { "id": "s8", "item": "Fresh Ginger", "quantity": 1, "unit": "Pk", "section": "Produce", "active": true },
-  { "id": "s9", "item": "Red Bell Pepper", "quantity": 1, "unit": "Cnt", "section": "Produce", "active": true },
-  { "id": "s10", "item": "Lime", "quantity": 1, "unit": "Cnt", "section": "Produce", "active": true },
-  { "id": "s11", "item": "Lemon", "quantity": 1, "unit": "Cnt", "section": "Produce", "active": true },
-  { "id": "s12", "item": "Celery", "quantity": 1, "unit": "Bg", "section": "Produce", "active": true },
-  { "id": "s13", "item": "Red Onion", "quantity": 1, "unit": "Cnt", "section": "Produce", "active": true },
-  { "id": "s14", "item": "Fresh Dill", "quantity": 1, "unit": "Pk", "section": "Produce", "active": true },
-  { "id": "s15", "item": "Mushrooms", "quantity": 1, "unit": "Pk", "section": "Produce", "active": true },
-
-  { "id": "s16", "item": "Chicken Breasts/Thighs", "quantity": 5, "unit": "lb", "section": "Meats", "active": true },
-
-  { "id": "s17", "item": "Greek Yogurt", "quantity": 1, "unit": "Cnt", "section": "Dairy/Eggs", "active": true },
-  { "id": "s18", "item": "Sour Cream", "quantity": 1, "unit": "Cnt", "section": "Dairy/Eggs", "active": true },
-
-  { "id": "s19", "item": "Mayonnaise", "quantity": 1, "unit": "Jar", "section": "Sauces", "active": true },
-  { "id": "s20", "item": "Dijon Mustard", "quantity": 1, "unit": "Jar", "section": "Sauces", "active": true },
-  { "id": "s21", "item": "Sweet Pickle Relish", "quantity": 1, "unit": "Jar", "section": "Sauces", "active": true },
-  { "id": "s22", "item": "Worcestershire Sauce", "quantity": 1, "unit": "Btl", "section": "Sauces", "active": true },
-  { "id": "s23", "item": "Ketchup", "quantity": 1, "unit": "Btl", "section": "Sauces", "active": true },
-  { "id": "s24", "item": "Soy Sauce", "quantity": 1, "unit": "Btl", "section": "Sauces", "active": true },
-  { "id": "s25", "item": "Honey", "quantity": 1, "unit": "Jar", "section": "Sauces", "active": true },
-
-  { "id": "s26", "item": "Diced Tomatoes", "quantity": 2, "unit": "Cn", "section": "Soup/Pasta", "active": true },
-  { "id": "s27", "item": "Black Beans", "quantity": 3, "unit": "Cn", "section": "Soup/Pasta", "active": true },
-  { "id": "s28", "item": "Chicken/Vegetable Broth", "quantity": 2, "unit": "Cn", "section": "Soup/Pasta", "active": true },
-  { "id": "s29", "item": "Egg Noodles", "quantity": 1, "unit": "Pk", "section": "Soup/Pasta", "active": true },
-  { "id": "s30", "item": "Canned Tuna", "quantity": 3, "unit": "Cn", "section": "Soup/Pasta", "active": true },
-
-  { "id": "s31", "item": "Coconut Milk", "quantity": 1, "unit": "Cn", "section": "Ethnic", "active": true },
-
-  { "id": "s32", "item": "Ground Coriander", "quantity": 1, "unit": "Jar", "section": "Baking", "active": true },
-  { "id": "s33", "item": "Ground Cumin", "quantity": 1, "unit": "Jar", "section": "Baking", "active": true },
-  { "id": "s34", "item": "Ground Turmeric", "quantity": 1, "unit": "Jar", "section": "Baking", "active": true },
-  { "id": "s35", "item": "Sweet Paprika", "quantity": 1, "unit": "Jar", "section": "Baking", "active": true },
-  { "id": "s36", "item": "Ground Cinnamon", "quantity": 1, "unit": "Jar", "section": "Baking", "active": true },
-  { "id": "s37", "item": "Cayenne Pepper", "quantity": 1, "unit": "Jar", "section": "Baking", "active": true },
-  { "id": "s38", "item": "Chili Powder", "quantity": 1, "unit": "Jar", "section": "Baking", "active": true },
-  { "id": "s39", "item": "Smoked Paprika", "quantity": 1, "unit": "Jar", "section": "Baking", "active": true },
-  { "id": "s40", "item": "Dried Oregano", "quantity": 1, "unit": "Jar", "section": "Baking", "active": true },
-  { "id": "s41", "item": "Bay Leaf", "quantity": 1, "unit": "Jar", "section": "Baking", "active": true },
-  { "id": "s42", "item": "Crushed Red Pepper Flakes", "quantity": 1, "unit": "Jar", "section": "Baking", "active": true },
-  { "id": "s43", "item": "Dried Thyme", "quantity": 1, "unit": "Jar", "section": "Baking", "active": true },
-
-  { "id": "s44", "item": "Sandwich Bread", "quantity": 1, "unit": "Bg", "section": "Bread/Grain", "active": true }
+  {
+    "id": "s1",
+    "item": "Bananas",
+    "quantity": 6,
+    "section": "Produce",
+    "active": true
+  },
+  {
+    "id": "s2",
+    "item": "Chicken Breast",
+    "quantity": 2,
+    "section": "Meats",
+    "active": true
+  },
+  {
+    "id": "s3",
+    "item": "Paper Towels",
+    "quantity": 1,
+    "section": "Misc",
+    "active": true
+  },
+  {
+    "id": "s4",
+    "item": "Milk",
+    "quantity": 1,
+    "section": "Dairy/Eggs",
+    "active": false
+  },
+  {
+    "id": "s5",
+    "item": "Lettuce",
+    "quantity": 1,
+    "section": "Produce",
+    "active": true
+  },
+  {
+    "id": "s6",
+    "item": "Yellow Onions",
+    "quantity": 4,
+    "section": "Produce",
+    "active": true
+  },
+  {
+    "id": "s7",
+    "item": "Garlic",
+    "quantity": 1,
+    "section": "Produce",
+    "active": true
+  },
+  {
+    "id": "s8",
+    "item": "Fresh Ginger",
+    "quantity": 1,
+    "section": "Produce",
+    "active": true
+  },
+  {
+    "id": "s9",
+    "item": "Red Bell Pepper",
+    "quantity": 1,
+    "section": "Produce",
+    "active": true
+  },
+  {
+    "id": "s10",
+    "item": "Lime",
+    "quantity": 1,
+    "section": "Produce",
+    "active": true
+  },
+  {
+    "id": "s11",
+    "item": "Lemon",
+    "quantity": 1,
+    "section": "Produce",
+    "active": true
+  },
+  {
+    "id": "s12",
+    "item": "Celery",
+    "quantity": 1,
+    "section": "Produce",
+    "active": true
+  },
+  {
+    "id": "s13",
+    "item": "Red Onion",
+    "quantity": 1,
+    "section": "Produce",
+    "active": true
+  },
+  {
+    "id": "s14",
+    "item": "Fresh Dill",
+    "quantity": 1,
+    "section": "Produce",
+    "active": true
+  },
+  {
+    "id": "s15",
+    "item": "Mushrooms",
+    "quantity": 1,
+    "section": "Produce",
+    "active": true
+  },
+  {
+    "id": "s16",
+    "item": "Chicken Breasts/Thighs",
+    "quantity": 5,
+    "section": "Meats",
+    "active": true
+  },
+  {
+    "id": "s17",
+    "item": "Greek Yogurt",
+    "quantity": 1,
+    "section": "Dairy/Eggs",
+    "active": true
+  },
+  {
+    "id": "s18",
+    "item": "Sour Cream",
+    "quantity": 1,
+    "section": "Dairy/Eggs",
+    "active": true
+  },
+  {
+    "id": "s19",
+    "item": "Mayonnaise",
+    "quantity": 1,
+    "section": "Sauces",
+    "active": true
+  },
+  {
+    "id": "s20",
+    "item": "Dijon Mustard",
+    "quantity": 1,
+    "section": "Sauces",
+    "active": true
+  },
+  {
+    "id": "s21",
+    "item": "Sweet Pickle Relish",
+    "quantity": 1,
+    "section": "Sauces",
+    "active": true
+  },
+  {
+    "id": "s22",
+    "item": "Worcestershire Sauce",
+    "quantity": 1,
+    "section": "Sauces",
+    "active": true
+  },
+  {
+    "id": "s23",
+    "item": "Ketchup",
+    "quantity": 1,
+    "section": "Sauces",
+    "active": true
+  },
+  {
+    "id": "s24",
+    "item": "Soy Sauce",
+    "quantity": 1,
+    "section": "Sauces",
+    "active": true
+  },
+  {
+    "id": "s25",
+    "item": "Honey",
+    "quantity": 1,
+    "section": "Sauces",
+    "active": true
+  },
+  {
+    "id": "s26",
+    "item": "Diced Tomatoes",
+    "quantity": 2,
+    "section": "Soup/Pasta",
+    "active": true
+  },
+  {
+    "id": "s27",
+    "item": "Black Beans",
+    "quantity": 3,
+    "section": "Soup/Pasta",
+    "active": true
+  },
+  {
+    "id": "s28",
+    "item": "Chicken/Vegetable Broth",
+    "quantity": 2,
+    "section": "Soup/Pasta",
+    "active": true
+  },
+  {
+    "id": "s29",
+    "item": "Egg Noodles",
+    "quantity": 1,
+    "section": "Soup/Pasta",
+    "active": true
+  },
+  {
+    "id": "s30",
+    "item": "Canned Tuna",
+    "quantity": 3,
+    "section": "Soup/Pasta",
+    "active": true
+  },
+  {
+    "id": "s31",
+    "item": "Coconut Milk",
+    "quantity": 1,
+    "section": "Ethnic",
+    "active": true
+  },
+  {
+    "id": "s32",
+    "item": "Ground Coriander",
+    "quantity": 1,
+    "section": "Baking",
+    "active": true
+  },
+  {
+    "id": "s33",
+    "item": "Ground Cumin",
+    "quantity": 1,
+    "section": "Baking",
+    "active": true
+  },
+  {
+    "id": "s34",
+    "item": "Ground Turmeric",
+    "quantity": 1,
+    "section": "Baking",
+    "active": true
+  },
+  {
+    "id": "s35",
+    "item": "Sweet Paprika",
+    "quantity": 1,
+    "section": "Baking",
+    "active": true
+  },
+  {
+    "id": "s36",
+    "item": "Ground Cinnamon",
+    "quantity": 1,
+    "section": "Baking",
+    "active": true
+  },
+  {
+    "id": "s37",
+    "item": "Cayenne Pepper",
+    "quantity": 1,
+    "section": "Baking",
+    "active": true
+  },
+  {
+    "id": "s38",
+    "item": "Chili Powder",
+    "quantity": 1,
+    "section": "Baking",
+    "active": true
+  },
+  {
+    "id": "s39",
+    "item": "Smoked Paprika",
+    "quantity": 1,
+    "section": "Baking",
+    "active": true
+  },
+  {
+    "id": "s40",
+    "item": "Dried Oregano",
+    "quantity": 1,
+    "section": "Baking",
+    "active": true
+  },
+  {
+    "id": "s41",
+    "item": "Bay Leaf",
+    "quantity": 1,
+    "section": "Baking",
+    "active": true
+  },
+  {
+    "id": "s42",
+    "item": "Crushed Red Pepper Flakes",
+    "quantity": 1,
+    "section": "Baking",
+    "active": true
+  },
+  {
+    "id": "s43",
+    "item": "Dried Thyme",
+    "quantity": 1,
+    "section": "Baking",
+    "active": true
+  },
+  {
+    "id": "s44",
+    "item": "Sandwich Bread",
+    "quantity": 1,
+    "section": "Bread/Grain",
+    "active": true
+  }
 ]

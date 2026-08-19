@@ -8,7 +8,6 @@ window.Store = (function () {
     shoppingList: "data/shoppingList.json",
     tasks: "data/tasks.json",
     sections: "data/sections.json",
-    units: "data/units.json",
     prompts: "data/prompts.json"
   };
   // Tracks which keys have already been checked for new seed items this page load,
@@ -149,7 +148,6 @@ window.Store = (function () {
 
     // Reference lists
     getSections: () => getAll("sections"),
-    getUnits: () => getAll("units"),
 
     // Daily message
     getPrompts: () => getAll("prompts")
