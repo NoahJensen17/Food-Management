@@ -132,8 +132,16 @@ window.ViewShopping = (function () {
         const row = e.target.closest(".list-row");
         const id = row.dataset.id;
         const item = items.find((i) => i.id === id);
-        await window.Store.updateShoppingItem(id, { active: !item.active });
-        render();
+        const nextActive = !item.active;
+
+        // Show the toggle instantly so the click registers before the list reshuffles
+        // (rows moving to/from "Checked Off" shifts everything below them into place).
+        btn.classList.toggle("checked", !nextActive);
+        row.classList.toggle("checked", !nextActive);
+        btn.disabled = true;
+
+        await window.Store.updateShoppingItem(id, { active: nextActive });
+        setTimeout(render, 400);
       });
     });
 
