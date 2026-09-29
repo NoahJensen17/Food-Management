@@ -103,7 +103,16 @@ window.Store = (function () {
     return rowsToObjects(data.values);
   }
 
-  async function callAppsScript(action, payload) {
+  function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  // Apps Script's web app redirects every request to a one-time "echo" URL that serves
+  // the real JSON response. That redirect/cold-start occasionally serves a transient
+  // HTML page instead (a Google-side quirk, not an app bug), which breaks a naive
+  // res.json() call. Reading as text and retrying once absorbs that flakiness instead
+  // of surfacing a raw "Unexpected token '<'" parse error to the user.
+  async function callAppsScriptOnce(action, payload) {
     const url = window.APP_CONFIG.sheets.appsScriptUrl;
     const res = await fetch(url, {
       method: "POST",
@@ -112,7 +121,22 @@ window.Store = (function () {
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify({ action, ...payload })
     });
-    const data = await res.json();
+    const text = await res.text();
+    return JSON.parse(text);
+  }
+
+  async function callAppsScript(action, payload) {
+    let data;
+    try {
+      data = await callAppsScriptOnce(action, payload);
+    } catch (e) {
+      await sleep(800);
+      try {
+        data = await callAppsScriptOnce(action, payload);
+      } catch (e2) {
+        throw new Error("Couldn't reach the Google Sheet. Please try again.");
+      }
+    }
     if (!data.ok) throw new Error(data.error || `Apps Script action failed: ${action}`);
     return data.result;
   }
