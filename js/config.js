@@ -9,7 +9,7 @@ window.APP_CONFIG = {
   sheets: {
     spreadsheetId: "1ine067TCAq1hO7a9Omsl2yu4eGZ53zZJ_QtveUHXie0",
     apiKey: "AIzaSyCT5KVgVMnoMNSCX7BC-OwOLuq7x4S94kY",
-    appsScriptUrl: "https://script.google.com/macros/s/AKfycby1OqP6mRB60VZ3GexSWeUORkYuEs2co6VlwxrbxzfKSN5rVMnN2St8RdT-dym06qZE/exec",
+    appsScriptUrl: "https://script.google.com/macros/s/AKfycbwn9-gFHERGQXrHmlQw4FfD2b_tXW7KM6tEimOvHE56EGHZUamCoqlswwPh8yLl78gX/exec",
     tabs: {
       recipes: "Recipes",
       instructions: "Instructions",

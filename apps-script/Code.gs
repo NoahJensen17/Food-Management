@@ -131,14 +131,27 @@ function deleteRowsForRecipe(sheetName, nameCol, name) {
   return toDelete.length;
 }
 
+function recipeExists(name) {
+  const { headers, rows } = readSheet(SHEET_RECIPES);
+  const col = colIndex(headers, "Recipe Name");
+  return rows.some((r) => r.values[col] === name);
+}
+
 // body: { recipe: { name, ingredients: [string,...], instructions: [string,...] } }
 function addRecipe(body) {
+  if (recipeExists(body.recipe.name)) {
+    throw new Error("A recipe named \"" + body.recipe.name + "\" already exists.");
+  }
   writeRecipeRows(body.recipe);
   return { created: true, name: body.recipe.name };
 }
 
 // body: { originalName, recipe: { name, ingredients, instructions } }
 function updateRecipe(body) {
+  const renaming = body.originalName !== body.recipe.name;
+  if (renaming && recipeExists(body.recipe.name)) {
+    throw new Error("A recipe named \"" + body.recipe.name + "\" already exists.");
+  }
   deleteRowsForRecipe(SHEET_RECIPES, "Recipe Name", body.originalName);
   deleteRowsForRecipe(SHEET_INSTRUCTIONS, "Recipe Name", body.originalName);
   writeRecipeRows(body.recipe);

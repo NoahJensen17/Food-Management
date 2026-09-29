@@ -44,8 +44,12 @@ window.ViewRecipes = (function () {
   }
 
   async function deleteRecipe(name) {
-    await window.Store.deleteRecipe(name);
-    render();
+    try {
+      await window.Store.deleteRecipe(name);
+      render();
+    } catch (err) {
+      alert(err.message || "Couldn't delete recipe. Please try again.");
+    }
   }
 
   // ---- Add/Edit overlay ----
@@ -150,14 +154,19 @@ window.ViewRecipes = (function () {
       panel().querySelectorAll('[data-action="send-cart"]').forEach((btn) => {
         btn.addEventListener("click", async () => {
           const ing = draft.ingredients[Number(btn.dataset.i)];
-          await window.Store.addShoppingItem({
-            item: ing,
-            quantity: 1,
-            section: "Misc",
-            active: true
-          });
           btn.disabled = true;
-          btn.innerHTML = iconCheck();
+          try {
+            await window.Store.addShoppingItem({
+              item: ing,
+              quantity: 1,
+              section: "Misc",
+              active: true
+            });
+            btn.innerHTML = iconCheck();
+          } catch (err) {
+            alert(err.message || "Couldn't add to shopping list. Please try again.");
+            btn.disabled = false;
+          }
         });
       });
 
@@ -166,13 +175,20 @@ window.ViewRecipes = (function () {
         draft.name = draft.name.trim();
         if (!draft.name) return;
 
-        if (isNew) {
-          await window.Store.addRecipe(draft);
-        } else {
-          await window.Store.updateRecipe(originalName, draft);
+        const saveBtn = document.getElementById("btn-save");
+        saveBtn.disabled = true;
+        try {
+          if (isNew) {
+            await window.Store.addRecipe(draft);
+          } else {
+            await window.Store.updateRecipe(originalName, draft);
+          }
+          closeEditor();
+          render();
+        } catch (err) {
+          alert(err.message || "Couldn't save recipe. Please try again.");
+          saveBtn.disabled = false;
         }
-        closeEditor();
-        render();
       });
     }
 
