@@ -1,17 +1,20 @@
-// Data layer: seeds from /data/*.json on first run, then persists all changes to localStorage.
-// Swapping this out for a Google Sheets-backed API later only requires changing the functions
-// in this file — every view calls Store.* and never touches localStorage directly.
+// Data layer.
+//
+// Recipes, Instructions, Shopping List, and Messages are backed by the "Meal Plan App
+// Data" Google Sheet: reads go straight to the Sheets API v4 REST endpoint with an API
+// key (read-only, safe to expose client-side); writes (add/update/delete) go through an
+// Apps Script Web App URL, since the Sheets API's write endpoints require OAuth that a
+// static, login-free app can't hold securely. See js/config.js for the connection
+// settings and apps-script/Code.gs for the write-side script.
+//
+// Tasks (Planning) and Sections (shopping category list) are unrelated to the Sheet and
+// stay on localStorage, exactly as before.
 window.Store = (function () {
   const PREFIX = "homeApp:";
-  const SEED_FILES = {
-    recipes: "data/recipes.json",
-    shoppingList: "data/shoppingList.json",
+  const LOCAL_SEED_FILES = {
     tasks: "data/tasks.json",
-    sections: "data/sections.json",
-    prompts: "data/prompts.json"
+    sections: "data/sections.json"
   };
-  // Tracks which keys have already been checked for new seed items this page load,
-  // so the merge below runs once per key per session rather than on every Store call.
   const mergedThisSession = new Set();
 
   function readLocal(key) {
@@ -23,65 +26,17 @@ window.Store = (function () {
     localStorage.setItem(PREFIX + key, JSON.stringify(value));
   }
 
-  function readSeededIds(key) {
-    const raw = localStorage.getItem(PREFIX + key + ":seededIds");
-    return raw ? new Set(JSON.parse(raw)) : null;
-  }
-
-  function writeSeededIds(key, idSet) {
-    localStorage.setItem(PREFIX + key + ":seededIds", JSON.stringify([...idSet]));
-  }
-
-  async function fetchSeed(key) {
-    const res = await fetch(SEED_FILES[key]);
+  async function fetchLocalSeed(key) {
+    const res = await fetch(LOCAL_SEED_FILES[key]);
     if (!res.ok) throw new Error(`Failed to load seed data for ${key}`);
     return res.json();
   }
 
-  function isIdCollection(arr) {
-    return Array.isArray(arr) && arr.length > 0 && typeof arr[0] === "object" && arr[0] !== null && "id" in arr[0];
-  }
-
-  // Folds newly-added entries from the seed JSON into what's already stored locally,
-  // keyed by id, so editing a seed file shows up on next reload without wiping any
-  // edits/checks/deletions the user already made. A per-key "seededIds" tombstone set
-  // remembers every id ever seen so a deleted seed item is never silently re-added.
-  async function mergeNewSeedItems(key, localValue) {
-    const seed = await fetchSeed(key);
-    const seedValue = key === "prompts" ? seed.messages : seed;
-
-    if (isIdCollection(seedValue)) {
-      const seededIds = readSeededIds(key) || new Set(localValue.map((i) => i.id));
-      const newItems = seedValue.filter((i) => i.id && !seededIds.has(i.id));
-      if (newItems.length) {
-        localValue = [...localValue, ...newItems];
-        writeLocal(key, localValue);
-      }
-      seedValue.forEach((i) => seededIds.add(i.id));
-      writeSeededIds(key, seededIds);
-    } else if (Array.isArray(seedValue)) {
-      const additions = seedValue.filter((v) => !localValue.includes(v));
-      if (additions.length) {
-        localValue = [...localValue, ...additions];
-        writeLocal(key, localValue);
-      }
-    }
-    return localValue;
-  }
-
-  async function ensureSeeded(key) {
+  async function ensureLocalSeeded(key) {
     let value = readLocal(key);
     if (value === null) {
-      const seed = await fetchSeed(key);
-      value = key === "prompts" ? seed.messages : seed;
+      value = await fetchLocalSeed(key);
       writeLocal(key, value);
-      if (isIdCollection(value)) writeSeededIds(key, new Set(value.map((i) => i.id)));
-      mergedThisSession.add(key);
-      return value;
-    }
-    if (!mergedThisSession.has(key)) {
-      mergedThisSession.add(key);
-      value = await mergeNewSeedItems(key, value);
     }
     return value;
   }
@@ -90,21 +45,22 @@ window.Store = (function () {
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
   }
 
-  // ---- Generic collection helpers ----
-  async function getAll(key) {
-    return ensureSeeded(key);
+  // ---- Local (localStorage-only) collection helpers: Tasks + Sections ----
+
+  async function getAllLocal(key) {
+    return ensureLocalSeeded(key);
   }
 
-  async function add(key, record) {
-    const items = await ensureSeeded(key);
+  async function addLocal(key, record) {
+    const items = await ensureLocalSeeded(key);
     const withId = { id: uid(), ...record };
     items.push(withId);
     writeLocal(key, items);
     return withId;
   }
 
-  async function update(key, id, patch) {
-    const items = await ensureSeeded(key);
+  async function updateLocal(key, id, patch) {
+    const items = await ensureLocalSeeded(key);
     const idx = items.findIndex((i) => i.id === id);
     if (idx === -1) return null;
     items[idx] = { ...items[idx], ...patch };
@@ -112,44 +68,165 @@ window.Store = (function () {
     return items[idx];
   }
 
-  async function remove(key, id) {
-    const items = await ensureSeeded(key);
-    const next = items.filter((i) => i.id !== id);
-    writeLocal(key, next);
-    return next;
-  }
-
-  async function removeWhere(key, predicate) {
-    const items = await ensureSeeded(key);
+  async function removeWhereLocal(key, predicate) {
+    const items = await ensureLocalSeeded(key);
     const next = items.filter((i) => !predicate(i));
     writeLocal(key, next);
     return next;
   }
 
+  // ---- Google Sheets helpers ----
+
+  function sheetUrl(tab) {
+    const cfg = window.APP_CONFIG.sheets;
+    return "https://sheets.googleapis.com/v4/spreadsheets/" + cfg.spreadsheetId +
+      "/values/" + encodeURIComponent(tab) +
+      "?valueRenderOption=UNFORMATTED_VALUE&key=" + cfg.apiKey;
+  }
+
+  // Zips the header row into keys, so row["Recipe Name"] etc. works regardless of
+  // column order in the sheet.
+  function rowsToObjects(values) {
+    if (!values || values.length < 2) return [];
+    const headers = values[0].map((h) => h.toString().trim());
+    return values.slice(1).map((row) => {
+      const o = {};
+      headers.forEach((h, i) => { o[h] = row[i] !== undefined ? row[i] : ""; });
+      return o;
+    });
+  }
+
+  async function fetchSheet(tab) {
+    const res = await fetch(sheetUrl(tab));
+    if (!res.ok) throw new Error(`Failed to load sheet tab: ${tab}`);
+    const data = await res.json();
+    return rowsToObjects(data.values);
+  }
+
+  async function callAppsScript(action, payload) {
+    const url = window.APP_CONFIG.sheets.appsScriptUrl;
+    const res = await fetch(url, {
+      method: "POST",
+      // Apps Script Web Apps don't support preflighted JSON content-types well from the
+      // browser; text/plain avoids the CORS preflight while the body is still valid JSON.
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ action, ...payload })
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || `Apps Script action failed: ${action}`);
+    return data.result;
+  }
+
+  // ---- Recipes (Sheets-backed) ----
+  // "Recipes" tab: one row per ingredient (Recipe Name, Ingredient).
+  // "Instructions" tab: one row per step (Recipe Name, Step Description, Step Number).
+  // Grouped client-side into { name, ingredients: [string,...], instructions: [string,...] }.
+
+  async function getRecipes() {
+    const cfg = window.APP_CONFIG.sheets.tabs;
+    const [recipeRows, instructionRows] = await Promise.all([
+      fetchSheet(cfg.recipes),
+      fetchSheet(cfg.instructions)
+    ]);
+
+    const byName = new Map();
+    recipeRows.forEach((row) => {
+      const name = String(row["Recipe Name"] || "").trim();
+      if (!name) return;
+      if (!byName.has(name)) byName.set(name, { name, ingredients: [], instructions: [] });
+      const ing = String(row["Ingredient"] || "").trim();
+      if (ing) byName.get(name).ingredients.push(ing);
+    });
+
+    instructionRows
+      .slice()
+      .sort((a, b) => Number(a["Step Number"]) - Number(b["Step Number"]))
+      .forEach((row) => {
+        const name = String(row["Recipe Name"] || "").trim();
+        if (!byName.has(name)) byName.set(name, { name, ingredients: [], instructions: [] });
+        const step = String(row["Step Description"] || "").trim();
+        if (step) byName.get(name).instructions.push(step);
+      });
+
+    return [...byName.values()];
+  }
+
+  async function addRecipe(recipe) {
+    return callAppsScript("addRecipe", { recipe });
+  }
+
+  async function updateRecipe(originalName, recipe) {
+    return callAppsScript("updateRecipe", { originalName, recipe });
+  }
+
+  async function deleteRecipe(name) {
+    return callAppsScript("deleteRecipe", { name });
+  }
+
+  // ---- Shopping List (Sheets-backed) ----
+  // "Shopping List" tab: Ingredient (primary key), Store Section, Quantity, Active Flag (1/0).
+
+  async function getShoppingList() {
+    const cfg = window.APP_CONFIG.sheets.tabs;
+    const rows = await fetchSheet(cfg.shoppingList);
+    return rows
+      .filter((row) => String(row["Ingredient"] || "").trim())
+      .map((row) => ({
+        item: String(row["Ingredient"]).trim(),
+        section: String(row["Store Section"] || "").trim(),
+        quantity: Number(row["Quantity"]) || 1,
+        active: Number(row["Active Flag"]) === 1
+      }));
+  }
+
+  // item: { item, quantity, section, active }. Ingredient name is the primary key:
+  // adding an ingredient that already exists updates that row instead of duplicating it.
+  async function addShoppingItem(item) {
+    return callAppsScript("addShoppingItem", item);
+  }
+
+  // originalItem identifies the existing row by ingredient name; patch carries the
+  // fields to change (item/section/quantity/active).
+  async function updateShoppingItem(originalItem, patch) {
+    return callAppsScript("updateShoppingItem", { originalItem, ...patch });
+  }
+
+  async function deleteCheckedShoppingItems() {
+    return callAppsScript("deleteCheckedShoppingItems", {});
+  }
+
+  // ---- Messages (Sheets-backed, read-only) ----
+
+  async function getMessages() {
+    const cfg = window.APP_CONFIG.sheets.tabs;
+    const rows = await fetchSheet(cfg.messages);
+    return rows.map((row) => String(row["Message"] || "").trim()).filter(Boolean);
+  }
+
   // ---- Domain-specific convenience API ----
   return {
-    // Recipes (each recipe embeds its own ingredients + instructions arrays)
-    getRecipes: () => getAll("recipes"),
-    addRecipe: (recipe) => add("recipes", recipe),
-    updateRecipe: (id, patch) => update("recipes", id, patch),
-    deleteRecipe: (id) => remove("recipes", id),
+    // Recipes
+    getRecipes,
+    addRecipe,
+    updateRecipe,
+    deleteRecipe,
 
     // Shopping list
-    getShoppingList: () => getAll("shoppingList"),
-    addShoppingItem: (item) => add("shoppingList", item),
-    updateShoppingItem: (id, patch) => update("shoppingList", id, patch),
-    deleteCheckedShoppingItems: () => removeWhere("shoppingList", (i) => !i.active),
+    getShoppingList,
+    addShoppingItem,
+    updateShoppingItem,
+    deleteCheckedShoppingItems,
 
-    // Tasks / to-do (Planning screen)
-    getTasks: () => getAll("tasks"),
-    addTask: (task) => add("tasks", task),
-    updateTask: (id, patch) => update("tasks", id, patch),
-    deleteCheckedTasks: () => removeWhere("tasks", (t) => !t.active),
+    // Tasks / to-do (Planning screen) — unchanged, localStorage-only
+    getTasks: () => getAllLocal("tasks"),
+    addTask: (task) => addLocal("tasks", task),
+    updateTask: (id, patch) => updateLocal("tasks", id, patch),
+    deleteCheckedTasks: () => removeWhereLocal("tasks", (t) => !t.active),
 
-    // Reference lists
-    getSections: () => getAll("sections"),
+    // Reference lists — unchanged, localStorage-only
+    getSections: () => getAllLocal("sections"),
 
     // Daily message
-    getPrompts: () => getAll("prompts")
+    getPrompts: getMessages
   };
 })();

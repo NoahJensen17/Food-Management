@@ -3,6 +3,21 @@ window.APP_CONFIG = {
   greetingName: "Liv",
   greetingLine: "Hey Love:",
 
+  // Google Sheets ("Meal Plan App Data"). Reads go straight to the Sheets API v4 REST
+  // endpoint with this API key. Writes (add/update/delete) go through the Apps Script
+  // Web App URL below, which holds no client-exposed credentials.
+  sheets: {
+    spreadsheetId: "1ine067TCAq1hO7a9Omsl2yu4eGZ53zZJ_QtveUHXie0",
+    apiKey: "AIzaSyCT5KVgVMnoMNSCX7BC-OwOLuq7x4S94kY",
+    appsScriptUrl: "https://script.google.com/macros/s/AKfycby1OqP6mRB60VZ3GexSWeUORkYuEs2co6VlwxrbxzfKSN5rVMnN2St8RdT-dym06qZE/exec",
+    tabs: {
+      recipes: "Recipes",
+      instructions: "Instructions",
+      shoppingList: "Shopping List",
+      messages: "Messages"
+    }
+  },
+
   // Open-Meteo (no API key required). Find coordinates at latlong.net.
   weather: {
     latitude: 43.0125,

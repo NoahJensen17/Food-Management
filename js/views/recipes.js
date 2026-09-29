@@ -6,7 +6,7 @@ window.ViewRecipes = (function () {
 
   async function render() {
     const recipes = await window.Store.getRecipes();
-    const sorted = [...recipes].sort((a, b) => a.recipe.localeCompare(b.recipe));
+    const sorted = [...recipes].sort((a, b) => a.name.localeCompare(b.name));
 
     el().innerHTML = `
       <div class="toolbar">
@@ -23,11 +23,11 @@ window.ViewRecipes = (function () {
 
     el().querySelectorAll(".recipe-card").forEach((card) => {
       card.addEventListener("click", () => {
-        const id = card.dataset.id;
+        const name = card.dataset.name;
         if (deleteMode) {
-          deleteRecipe(id);
+          deleteRecipe(name);
         } else {
-          openEditor(recipes.find((r) => r.id === id));
+          openEditor(recipes.find((r) => r.name === name));
         }
       });
     });
@@ -35,29 +35,26 @@ window.ViewRecipes = (function () {
 
   function cardHtml(r) {
     return `
-      <div class="recipe-card" data-id="${r.id}">
+      <div class="recipe-card" data-name="${escapeAttr(r.name)}">
         <div class="recipe-card__top">
-          <div>
-            <div class="recipe-card__name">${r.recipe}</div>
-            <div class="recipe-card__meal">${r.mealTime || ""}</div>
-          </div>
-          <div class="star">${r.favorite ? "★" : ""}</div>
+          <div class="recipe-card__name">${escapeHtml(r.name)}</div>
         </div>
       </div>
     `;
   }
 
-  async function deleteRecipe(id) {
-    await window.Store.deleteRecipe(id);
+  async function deleteRecipe(name) {
+    await window.Store.deleteRecipe(name);
     render();
   }
 
   // ---- Add/Edit overlay ----
   function openEditor(recipe) {
     const isNew = !recipe;
+    const originalName = recipe ? recipe.name : null;
     const draft = recipe
       ? JSON.parse(JSON.stringify(recipe))
-      : { recipe: "", mealTime: "", favorite: false, ingredients: [], instructions: [] };
+      : { name: "", ingredients: [], instructions: [] };
 
     function paint() {
       panel().innerHTML = `
@@ -68,12 +65,7 @@ window.ViewRecipes = (function () {
 
         <div class="field">
           <label>Recipe Name</label>
-          <input type="text" id="f-name" value="${escapeAttr(draft.recipe)}" />
-        </div>
-
-        <div class="field">
-          <label>Meal Time</label>
-          <input type="text" id="f-mealtime" value="${escapeAttr(draft.mealTime)}" placeholder="Ex: Dinner" />
+          <input type="text" id="f-name" value="${escapeAttr(draft.name)}" />
         </div>
 
         <div class="field">
@@ -81,15 +73,13 @@ window.ViewRecipes = (function () {
           <div id="ingredient-list">
             ${draft.ingredients.map((ing, i) => `
               <div class="ingredient-row" data-i="${i}">
-                <input type="number" class="ing-qty" value="${ing.qty}" min="0" />
-                <input type="text" class="ing-text" value="${escapeAttr(ing.text)}" style="flex:1" />
+                <input type="text" class="ing-text" value="${escapeAttr(ing)}" style="flex:1" />
                 <button class="btn-icon" data-action="send-cart" data-i="${i}" title="Send to shopping list">${iconCart()}</button>
                 <button class="btn-icon danger" data-action="remove-ing" data-i="${i}" title="Remove">${iconCancel()}</button>
               </div>
             `).join("")}
           </div>
           <div class="ingredient-row">
-            <input type="number" id="new-ing-qty" min="0" />
             <input type="text" id="new-ing-text" style="flex:1" placeholder="Ingredient" />
             <button class="btn-icon" id="btn-add-ing" title="Add ingredient">${iconPlus()}</button>
           </div>
@@ -112,36 +102,24 @@ window.ViewRecipes = (function () {
           </div>
         </div>
 
-        <div class="field">
-          <label>
-            <input type="checkbox" id="f-favorite" ${draft.favorite ? "checked" : ""} style="width:auto;margin-right:6px" />
-            Favorite
-          </label>
-        </div>
-
         <button class="btn btn-primary btn-full" id="btn-save">Save Recipe</button>
       `;
 
       document.getElementById("btn-close").addEventListener("click", closeEditor);
 
       function syncDraftFromInputs() {
-        draft.recipe = document.getElementById("f-name").value;
-        draft.mealTime = document.getElementById("f-mealtime").value;
+        draft.name = document.getElementById("f-name").value;
         panel().querySelectorAll(".ingredient-row[data-i]").forEach((row) => {
           const i = Number(row.dataset.i);
-          draft.ingredients[i] = {
-            qty: Number(row.querySelector(".ing-qty").value) || 0,
-            text: row.querySelector(".ing-text").value
-          };
+          draft.ingredients[i] = row.querySelector(".ing-text").value;
         });
       }
 
       document.getElementById("btn-add-ing").addEventListener("click", () => {
         syncDraftFromInputs();
-        const qty = Number(document.getElementById("new-ing-qty").value) || 0;
         const text = document.getElementById("new-ing-text").value.trim();
         if (!text) return;
-        draft.ingredients.push({ qty, text });
+        draft.ingredients.push(text);
         paint();
       });
 
@@ -173,9 +151,8 @@ window.ViewRecipes = (function () {
         btn.addEventListener("click", async () => {
           const ing = draft.ingredients[Number(btn.dataset.i)];
           await window.Store.addShoppingItem({
-            item: ing.text,
-            quantity: ing.qty || 1,
-            unit: "Cnt",
+            item: ing,
+            quantity: 1,
             section: "Misc",
             active: true
           });
@@ -184,20 +161,15 @@ window.ViewRecipes = (function () {
         });
       });
 
-      document.getElementById("f-favorite").addEventListener("change", (e) => {
-        draft.favorite = e.target.checked;
-      });
-
       document.getElementById("btn-save").addEventListener("click", async () => {
         syncDraftFromInputs();
-        draft.recipe = draft.recipe.trim();
-        draft.mealTime = draft.mealTime.trim();
-        if (!draft.recipe) return;
+        draft.name = draft.name.trim();
+        if (!draft.name) return;
 
         if (isNew) {
           await window.Store.addRecipe(draft);
         } else {
-          await window.Store.updateRecipe(draft.id, draft);
+          await window.Store.updateRecipe(originalName, draft);
         }
         closeEditor();
         render();

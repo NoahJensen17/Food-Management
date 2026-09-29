@@ -71,19 +71,19 @@ window.ViewShopping = (function () {
     const checked = !item.active;
     if (mode === "edit") {
       return `
-        <div class="list-row" data-id="${item.id}">
+        <div class="list-row" data-item="${escapeAttr(item.item)}">
           <input type="number" class="edit-qty" value="${item.quantity}" style="width:60px" />
-          <input type="text" class="edit-item" value="${item.item}" style="flex:1" />
+          <input type="text" class="edit-item" value="${escapeAttr(item.item)}" style="flex:1" />
           <button class="btn-icon" data-action="save-edit" title="Save">${iconCheck()}</button>
         </div>
       `;
     }
     return `
-      <div class="list-row ${checked ? "checked" : ""}" data-id="${item.id}">
+      <div class="list-row ${checked ? "checked" : ""}" data-item="${escapeAttr(item.item)}">
         <button class="checkbox ${checked ? "checked" : ""}" data-action="toggle"></button>
         <div>
-          <div class="list-row__title">${item.quantity} ${item.item}</div>
-          <div class="list-row__meta">${item.section}</div>
+          <div class="list-row__title">${item.quantity} ${escapeHtml(item.item)}</div>
+          <div class="list-row__meta">${escapeHtml(item.section)}</div>
         </div>
       </div>
     `;
@@ -120,8 +120,8 @@ window.ViewShopping = (function () {
     el().querySelectorAll('[data-action="toggle"]').forEach((btn) => {
       btn.addEventListener("click", async (e) => {
         const row = e.target.closest(".list-row");
-        const id = row.dataset.id;
-        const item = items.find((i) => i.id === id);
+        const itemName = row.dataset.item;
+        const item = items.find((i) => i.item === itemName);
         const nextActive = !item.active;
 
         // Show the toggle instantly so the click registers before the list reshuffles
@@ -130,7 +130,7 @@ window.ViewShopping = (function () {
         row.classList.toggle("checked", !nextActive);
         btn.disabled = true;
 
-        await window.Store.updateShoppingItem(id, { active: nextActive });
+        await window.Store.updateShoppingItem(itemName, { active: nextActive });
         setTimeout(render, 400);
       });
     });
@@ -138,8 +138,8 @@ window.ViewShopping = (function () {
     el().querySelectorAll('[data-action="save-edit"]').forEach((btn) => {
       btn.addEventListener("click", async (e) => {
         const row = e.target.closest(".list-row");
-        const id = row.dataset.id;
-        await window.Store.updateShoppingItem(id, {
+        const itemName = row.dataset.item;
+        await window.Store.updateShoppingItem(itemName, {
           item: row.querySelector(".edit-item").value.trim(),
           quantity: Number(row.querySelector(".edit-qty").value) || 1
         });
@@ -147,6 +147,11 @@ window.ViewShopping = (function () {
       });
     });
   }
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+  function escapeAttr(str) { return escapeHtml(str); }
 
   function iconPlus() { return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>`; }
   function iconEdit() { return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`; }
