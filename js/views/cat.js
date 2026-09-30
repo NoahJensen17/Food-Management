@@ -2,15 +2,43 @@
 // wanders a room, sits, sleeps, and reacts to being tapped. Pure CSS/SVG + JS state
 // machine — no external assets or libraries. Purely decorative; touches no Store data.
 window.CatWidget = (function () {
-  const ROOM_PADDING = 16; // keeps the cat's sprite fully inside the room card while walking
   const SPRITE_SIZE = 92; // px, width/height of the cat sprite's bounding box
+
+  // The floor is a trapezoid (see .cat-room__floor's clip-path: 28%/72% at the horizon
+  // widening to 0%/100% at the bottom) starting at 30% down the room. Floor Y range
+  // stays within that band; the X range at a given Y is interpolated to match the
+  // trapezoid's edges so the cat is never placed outside the visible floor shape.
+  const FLOOR_TOP = 34; // % — a little below the 30% horizon so paws don't clip the baseboard
+  const FLOOR_BOTTOM = 92; // % — leaves a little margin above the room's bottom edge
+  const HORIZON_LEFT = 30; // % — floor's left edge at the horizon (matches clip-path ~28% + margin)
+  const HORIZON_RIGHT = 70; // % — floor's right edge at the horizon
+  const FURNITURE = {
+    rug: { x: 50, y: 76 },
+    bed: { x: 24, y: 45 }
+  };
 
   let root = null;
   let spriteEl = null;
   let state = "sitting"; // "walking" | "sitting" | "lying-down" | "sleeping" | "startled" | "waking"
   let facingRight = true;
-  let pos = { x: 50, y: 50 }; // percentage within the room
+  let pos = { x: 50, y: 76 }; // percentage within the room; starts on the rug
   let timers = [];
+
+  // Depth scale: 1 at the bottom (closest), shrinking toward the horizon (furthest),
+  // so the same sprite reads as "further back in the room" rather than just "higher up".
+  function depthScale(y) {
+    const t = (y - FLOOR_TOP) / (FLOOR_BOTTOM - FLOOR_TOP);
+    return 0.62 + Math.max(0, Math.min(1, t)) * 0.38;
+  }
+
+  // The floor's usable X range narrows toward the horizon to match the trapezoid shape.
+  function floorXRange(y) {
+    const t = (y - FLOOR_TOP) / (FLOOR_BOTTOM - FLOOR_TOP);
+    const clampedT = Math.max(0, Math.min(1, t));
+    const left = HORIZON_LEFT * (1 - clampedT) + 2 * clampedT;
+    const right = HORIZON_RIGHT * (1 - clampedT) + 98 * clampedT;
+    return { left, right };
+  }
 
   function clearTimers() {
     timers.forEach((t) => clearTimeout(t));
@@ -40,7 +68,8 @@ window.CatWidget = (function () {
   function positionSprite() {
     spriteEl.style.left = pos.x + "%";
     spriteEl.style.top = pos.y + "%";
-    spriteEl.style.transform = `translate(-50%, -50%) scaleX(${facingRight ? 1 : -1})`;
+    const scale = depthScale(pos.y);
+    spriteEl.style.transform = `translate(-50%, -50%) scale(${scale}) scaleX(${facingRight ? 1 : -1})`;
   }
 
   // Converts a target percentage position into a CSS transition duration proportional
@@ -62,16 +91,34 @@ window.CatWidget = (function () {
     after(duration * 1000, onArrive);
   }
 
+  // True once the cat has actually arrived at (approximately) a furniture anchor —
+  // used so "sit on the rug" / "sleep in the bed" only trigger there, not anywhere on
+  // the floor, keeping the resting poses visually tied to a piece of furniture.
+  function isNear(spot, tolerance) {
+    return Math.abs(pos.x - spot.x) < tolerance && Math.abs(pos.y - spot.y) < tolerance;
+  }
+
   function onArrive() {
+    const onRug = isNear(FURNITURE.rug, 10);
+    const onBed = isNear(FURNITURE.bed, 10);
     const roll = Math.random();
-    if (roll < 0.45) {
-      scheduleNextWalk(randBetween(400, 1500));
-    } else if (roll < 0.75) {
+
+    if (onBed && roll < 0.7) {
+      lieDownThenSleep();
+    } else if (onRug && roll < 0.6) {
       setState("sitting");
       after(randBetween(2500, 5000), () => scheduleNextWalk(200));
+    } else if (roll < 0.5) {
+      scheduleNextWalk(randBetween(400, 1500));
+    } else if (roll < 0.75) {
+      walkToFurniture(FURNITURE.rug);
     } else {
-      lieDownThenSleep();
+      walkToFurniture(FURNITURE.bed);
     }
+  }
+
+  function walkToFurniture(spot) {
+    after(200, () => walkTo(spot.x, spot.y));
   }
 
   function lieDownThenSleep() {
@@ -92,8 +139,9 @@ window.CatWidget = (function () {
   function scheduleNextWalk(delay) {
     after(delay, () => {
       spriteEl.style.transitionDuration = "0s";
-      const targetX = randBetween(ROOM_PADDING, 100 - ROOM_PADDING);
-      const targetY = randBetween(ROOM_PADDING, 100 - ROOM_PADDING);
+      const targetY = randBetween(FLOOR_TOP, FLOOR_BOTTOM);
+      const { left, right } = floorXRange(targetY);
+      const targetX = randBetween(left, right);
       walkTo(targetX, targetY);
     });
   }
@@ -188,6 +236,9 @@ window.CatWidget = (function () {
     root = container;
     root.innerHTML = `
       <div class="cat-room">
+        <div class="cat-room__window"></div>
+        <div class="cat-room__floor"></div>
+        <div class="cat-room__bed"></div>
         <div class="cat-room__rug"></div>
         <button type="button" class="cat-sprite" id="cat-sprite" aria-label="Pet the cat" data-state="${state}">
           ${catSvg()}
