@@ -139,6 +139,14 @@ main {
   overflow-y: auto;
 }
 
+/* Home's last element (the cat room) has nothing below it that needs protecting from
+   the sticky bottom nav, unlike the scrollable lists in other views — so the usual
+   nav-clearance padding is just unused buffer there. Reduced to a small fixed gap
+   instead, specifically while Home is the active view. */
+main:has(#view-home.active) {
+  padding-bottom: 12px;
+}
+
 .view {
   display: none;
   animation: fade-in 0.18s ease;
@@ -208,6 +216,8 @@ main {
 
 #view-home .card--flush {
   padding: 0;
+  /* The cat card is the last thing on Home — no trailing margin below it. */
+  margin-bottom: 0;
 }
 
 .home-sub {
@@ -636,9 +646,7 @@ main {
 .cat-room {
   position: relative;
   width: 100%;
-  /* Prioritizes giving the cat a spacious room over avoiding a scrollbar; the Home
-     screen may need a small scroll on shorter phones as a result. */
-  height: 360px;
+  height: 400px;
   /* Matches the containing .card--flush's own radius so the room's corners align
      exactly with the card's edge now that it fills the card with no padding. */
   border-radius: var(--radius-lg);
