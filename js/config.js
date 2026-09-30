@@ -1,7 +1,6 @@
 // App-wide configuration. Edit this file to personalize the app.
 window.APP_CONFIG = {
   greetingName: "Liv",
-  greetingLine: "Hey Love:",
 
   // Google Sheets ("Meal Plan App Data"). Reads go straight to the Sheets API v4 REST
   // endpoint with this API key. Writes (add/update/delete) go through the Apps Script
@@ -30,9 +29,5 @@ window.APP_CONFIG = {
   verseOfTheDay: {
     enabled: true,
     reference: "" // e.g. "john 3:16" — blank uses the rotating default list in js/api.js
-  },
-
-  dailyMessage: {
-    enabled: true
   }
 };

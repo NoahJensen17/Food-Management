@@ -3,19 +3,11 @@ window.ViewHome = (function () {
 
   async function render() {
     const cfg = window.APP_CONFIG;
-    const prompts = await window.Store.getPrompts();
-    const message = prompts[Math.floor(Math.random() * prompts.length)];
 
     el().innerHTML = `
       <div class="home-greeting">Welcome, ${cfg.greetingName}</div>
-      <div class="home-sub">${cfg.greetingLine}</div>
 
-      <div class="home-grid two-col">
-        <div class="card">
-          <div class="card-title">Message of the Day</div>
-          <div class="verse-text">${message}</div>
-        </div>
-
+      <div class="home-grid">
         <div class="card" id="weather-card">
           <div class="card-title">Weather &middot; ${cfg.weather.label}</div>
           <div id="weather-body">Loading&hellip;</div>
