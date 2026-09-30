@@ -680,17 +680,18 @@ main {
 }
 
 /* Sunlight: a soft trapezoid of light falling from the window onto the wood floor. Its
-   top edge is anchored to the window's actual left/right edges (35%/65% of room width,
-   since .cat-room__window is 26% wide centered at 50%) so the light plausibly comes
+   top edge is anchored to the door's actual left/right edges (24%/76% of room width,
+   since .cat-room__window is 52% wide centered at 50%) so the light plausibly comes
    from that door rather than an arbitrary cone; it widens toward the viewer at the
-   same rate on both sides for a realistic, symmetric light-throw angle. */
+   same rate on both sides, clamped to the room's own edges since the door is wide
+   enough that an unclamped cone would overshoot them. */
 .cat-room__sunlight {
   position: absolute;
   left: 0;
   right: 0;
   top: 0;
   bottom: 0;
-  clip-path: polygon(37% 0%, 63% 0%, 91% 100%, 9% 100%);
+  clip-path: polygon(24% 0%, 76% 0%, 100% 100%, 0% 100%);
   background: linear-gradient(180deg, rgba(255, 246, 214, 0.75), rgba(255, 246, 214, 0.28));
   mix-blend-mode: soft-light;
   pointer-events: none;
@@ -706,7 +707,7 @@ main {
   top: -35%;
   left: 50%;
   transform: translateX(-50%);
-  width: 26%;
+  width: 52%;
   height: 89%;
   background: linear-gradient(to bottom, #cfe8f7, #eaf4fb);
   border: 5px solid #8a6a45;
@@ -748,11 +749,13 @@ main {
      room's visible top falls at (0 - -35) / 89 = ~39% down the door, meaning only the
      door's lower ~61% is ever visible. A real handle sits around the door's true
      vertical middle (50% of its full height) — just below where the visible area
-     begins — so it's placed starting a little past that clip line. */
+     begins — so it's placed starting a little past that clip line. Height is a third
+     of its previous size (26% -> ~8.7%), keeping the same top so only the bottom two
+     thirds are trimmed off rather than the bar shrinking from its center. */
   position: absolute;
   z-index: 1;
   top: 44%;
-  height: 26%;
+  height: 8.7%;
   left: calc(50% + 8px);
   width: 5px;
   background: #6b4e30;
@@ -766,7 +769,7 @@ main {
   position: absolute;
   left: 50%;
   top: 34%;
-  width: 28%;
+  width: 52%;
   height: 26%;
   transform: translateX(-50%);
   border: 3px solid #2f4f70;
