@@ -638,7 +638,7 @@ main {
   width: 100%;
   /* Prioritizes giving the cat a spacious room over avoiding a scrollbar; the Home
      screen may need a small scroll on shorter phones as a result. */
-  height: 320px;
+  height: 360px;
   /* Matches the containing .card--flush's own radius so the room's corners align
      exactly with the card's edge now that it fills the card with no padding. */
   border-radius: var(--radius-lg);

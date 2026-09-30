@@ -21,6 +21,7 @@ window.CatWidget = (function () {
   let view = "toward"; // "away" | "toward" — which drawn pose is currently shown; never mirrored
   let pos = { x: 50, y: 73 }; // percentage within the room; starts on the rug
   let timers = [];
+  let walkSessionStart = 0; // Date.now() when the current continuous walking session began
 
   // Depth scale: 1 at the bottom (closest), shrinking toward the horizon (furthest),
   // so the same sprite reads as "further back in the room" rather than just "higher up".
@@ -117,14 +118,29 @@ window.CatWidget = (function () {
     return Math.abs(pos.x - spot.x) < tolerance && Math.abs(pos.y - spot.y) < tolerance;
   }
 
-  // Sitting/roaming pauses last 30s-1min; sleeping lasts much longer (30s-5min), per
-  // the intended "living in the background" feel rather than a quick animation loop.
-  const SIT_MIN_MS = 30000;
-  const SIT_MAX_MS = 60000;
+  // Sitting/roaming pauses last at most 15s before she moves again; sleeping lasts much
+  // longer (30s-5min), per the intended "living in the background" feel rather than a
+  // quick animation loop. A walking session lasts at least 10s before she's allowed to
+  // stop and decide to sit/sleep again — see scheduleNextWalk/onArrive's minimum-walk
+  // handling below.
+  const SIT_MIN_MS = 3000;
+  const SIT_MAX_MS = 15000;
   const SLEEP_MIN_MS = 30000;
   const SLEEP_MAX_MS = 300000;
+  const WALK_MIN_MS = 10000;
 
+  // Once a walking session has gone on long enough (WALK_MIN_MS), each arrival rolls
+  // normally whether to stop (sit/sleep) or keep wandering. Before that minimum has
+  // elapsed, she's not allowed to stop yet — every arrival just queues another random
+  // hop instead of rolling to sit/sleep, so a "walk" always reads as a real ~10s+
+  // wander rather than a single short hop that could immediately end again.
   function onArrive() {
+    const walked = Date.now() - walkSessionStart;
+    if (walked < WALK_MIN_MS) {
+      scheduleNextWalk(randBetween(200, 800));
+      return;
+    }
+
     const onRug = isNear(RUG, 12);
     const roll = Math.random();
 
@@ -167,7 +183,10 @@ window.CatWidget = (function () {
     }
   }
 
+  // Always faces front (toward) when lying down/sleeping, regardless of which
+  // direction the walk to get there faced, so her face is visible while asleep.
   function startLyingDown() {
+    setView("toward");
     setState("lying-down");
     after(1800, () => {
       setState("sleeping");
@@ -183,6 +202,11 @@ window.CatWidget = (function () {
   }
 
   function scheduleNextWalk(delay) {
+    // A fresh walking session starts whenever the cat isn't already walking (coming
+    // from sitting/waking/startled/purring/etc.); chained hops during onArrive's
+    // "keep wandering" branches leave state as "walking" throughout, so the timer
+    // isn't reset mid-session — only a genuinely new session resets the clock.
+    if (state !== "walking") walkSessionStart = Date.now();
     after(delay, () => {
       spriteEl.style.transitionDuration = "0s";
       const targetY = randBetween(FLOOR_TOP, FLOOR_BOTTOM);
@@ -256,15 +280,18 @@ window.CatWidget = (function () {
           <path d="M60 90 Q64 74 55 58" fill="none" stroke="#2b2320" stroke-width="5" stroke-linecap="round" opacity="0.55"/>
         </g>
 
+        <!-- Legs painted before the body here (unlike the front view) so they sit
+             behind/under the body silhouette, like a real cat's legs viewed from
+             behind — only small paw-tips should peek out past the body's edge. -->
+        <g class="cat-legs">
+          <ellipse class="cat-leg cat-leg--left" cx="44" cy="96" rx="8" ry="10" fill="#faf6ee" stroke="#e4d9c8" stroke-width="1.5"/>
+          <ellipse class="cat-leg cat-leg--right" cx="76" cy="96" rx="8" ry="10" fill="#faf6ee" stroke="#e4d9c8" stroke-width="1.5"/>
+        </g>
+
         <ellipse class="cat-body" cx="60" cy="76" rx="30" ry="26" fill="#faf6ee"/>
         <path class="cat-body-patch" d="M32 62 Q52 50 66 62 Q62 84 40 86 Q28 76 32 62Z" fill="#2b2320"/>
         <path class="cat-body-patch cat-body-patch--orange" d="M60 56 Q82 54 86 74 Q76 90 58 80 Q54 66 60 56Z" fill="#e8792c"/>
         <path class="cat-body-patch" d="M70 82 Q80 88 76 96 Q66 96 66 88Z" fill="#2b2320"/>
-
-        <g class="cat-legs">
-          <ellipse class="cat-leg cat-leg--left" cx="44" cy="100" rx="8" ry="10" fill="#faf6ee" stroke="#e4d9c8" stroke-width="1.5"/>
-          <ellipse class="cat-leg cat-leg--right" cx="76" cy="100" rx="8" ry="10" fill="#faf6ee" stroke="#e4d9c8" stroke-width="1.5"/>
-        </g>
 
         <g class="cat-head-group">
           <path d="M36 40 L28 16 L50 32Z" fill="#faf6ee"/>
