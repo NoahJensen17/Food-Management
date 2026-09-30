@@ -349,7 +349,7 @@ window.CatWidget = (function () {
              rather than the forehead being a separate white or orange area. An
              orange "cap" patch sits on top of the head, above/behind the forehead
              black, and white is left showing specifically around both eyes. -->
-          <path class="cat-head-patch" d="M30 30 Q20 40 24 54 Q30 64 42 62 Q50 56 48 42 Q48 26 62 22 Q70 20 74 26 Q68 32 56 34 Q48 36 46 30 Q40 28 30 30Z" fill="#1c1917"/>
+          <path class="cat-head-patch" d="M32 20 Q22 26 24 40 Q20 46 24 54 Q30 64 42 62 Q50 56 48 42 Q48 26 62 22 Q72 18 80 24 Q82 30 74 34 Q64 38 56 34 Q48 36 46 30 Q40 24 32 20Z" fill="#1c1917"/>
           <path class="cat-head-patch cat-head-patch--orange" d="M46 18 Q60 8 76 16 Q80 24 70 28 Q58 30 50 26 Q42 24 46 18Z" fill="#d17a2e"/>
 
           <!-- Left cheek ellipse recolored to black so it blends with the face patch
