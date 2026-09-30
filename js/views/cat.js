@@ -280,7 +280,7 @@ window.CatWidget = (function () {
   function catSvgAway() {
     return svgWrap(`
         <g class="cat-tail">
-          <path d="M60 96 Q66 70 52 50" fill="none" stroke="#c1863f" stroke-width="12" stroke-linecap="round"/>
+          <path d="M60 96 Q66 70 52 50" fill="none" stroke="#d17a2e" stroke-width="12" stroke-linecap="round"/>
           <path d="M58 68 Q52 58 52 50" fill="none" stroke="#1c1917" stroke-width="10" stroke-linecap="round"/>
         </g>
 
@@ -295,17 +295,21 @@ window.CatWidget = (function () {
         <!-- Black covers almost the whole back, unlike the front view's mostly-white
              body — the reference photo shows barely any white visible from behind. -->
         <ellipse class="cat-body" cx="60" cy="76" rx="30" ry="26" fill="#1c1917"/>
-        <path class="cat-body-patch cat-body-patch--orange" d="M40 54 Q66 48 76 62 Q74 78 54 78 Q38 72 40 54Z" fill="#c1863f"/>
+        <path class="cat-body-patch cat-body-patch--orange" d="M40 54 Q66 48 76 62 Q74 78 54 78 Q38 72 40 54Z" fill="#d17a2e"/>
         <!-- Small white sliver at the neck/collar, the only white visible from behind. -->
         <path d="M48 54 Q60 50 70 54 Q66 60 58 60 Q50 60 48 54Z" fill="#faf6ee"/>
+        <!-- A couple small extra white/orange flecks lower on the back, breaking up
+             the black a bit more like a real calico's scattered patches. -->
+        <path d="M36 82 Q42 78 44 84 Q40 90 34 88 Q32 84 36 82Z" fill="#faf6ee"/>
+        <path d="M78 86 Q86 84 86 92 Q80 96 76 92 Q75 88 78 86Z" fill="#d17a2e"/>
 
         <g class="cat-head-group">
           <path d="M36 40 L28 16 L50 32Z" fill="#1c1917"/>
           <path d="M84 40 L92 16 L70 32Z" fill="#faf6ee"/>
-          <path d="M83 34 L89 20 L74 31Z" fill="#c1863f"/>
-          <path class="cat-head-patch" d="M70 30 Q88 32 86 46 Q72 48 66 36Z" fill="#c1863f"/>
+          <path d="M83 34 L89 20 L74 31Z" fill="#d17a2e"/>
+          <path class="cat-head-patch" d="M70 30 Q88 32 86 46 Q72 48 66 36Z" fill="#d17a2e"/>
           <circle class="cat-head" cx="60" cy="46" r="28" fill="#1c1917"/>
-          <path class="cat-head-patch cat-head-patch--orange" d="M42 30 Q56 26 60 38 Q54 46 44 42 Q38 36 42 30Z" fill="#c1863f"/>
+          <path class="cat-head-patch cat-head-patch--orange" d="M42 30 Q56 26 60 38 Q54 46 44 42 Q38 36 42 30Z" fill="#d17a2e"/>
           <path d="M46 66 Q60 72 74 66" fill="none" stroke="#3a3330" stroke-width="2" stroke-linecap="round"/>
         </g>
     `);
@@ -316,7 +320,8 @@ window.CatWidget = (function () {
   function catSvgToward() {
     return svgWrap(`
         <g class="cat-tail">
-          <path d="M92 88 Q104 68 92 48" fill="none" stroke="#c1863f" stroke-width="12" stroke-linecap="round"/>
+          <path d="M92 88 Q104 68 92 48" fill="none" stroke="#d17a2e" stroke-width="12" stroke-linecap="round"/>
+          <path d="M100 78 Q104 68 98 56" fill="none" stroke="#1c1917" stroke-width="8" stroke-linecap="round"/>
         </g>
 
         <ellipse class="cat-body" cx="60" cy="76" rx="32" ry="26" fill="#faf6ee"/>
@@ -325,7 +330,7 @@ window.CatWidget = (function () {
         <path class="cat-body-patch" d="M30 58 Q46 52 54 62 Q56 76 44 84 Q30 86 26 74 Q26 64 30 58Z" fill="#1c1917"/>
         <!-- Small caramel patch low on the opposite hip, like the fleck seen near
              the tail base in the reference. -->
-        <path class="cat-body-patch cat-body-patch--orange" d="M74 78 Q84 80 82 90 Q72 92 68 84 Q68 80 74 78Z" fill="#c1863f"/>
+        <path class="cat-body-patch cat-body-patch--orange" d="M74 78 Q84 80 82 90 Q72 92 68 84 Q68 80 74 78Z" fill="#d17a2e"/>
 
         <g class="cat-legs">
           <ellipse class="cat-leg cat-leg--left" cx="44" cy="100" rx="8" ry="10" fill="#1c1917" stroke="#100e0d" stroke-width="1.5"/>
@@ -336,15 +341,16 @@ window.CatWidget = (function () {
           <path d="M34 38 L26 14 L48 30Z" fill="#1c1917"/>
           <path d="M86 38 L94 14 L72 30Z" fill="#faf6ee"/>
           <path d="M85 33 L90 19 L76 29Z" fill="#f2b9c4"/>
-          <path class="cat-head-patch" d="M74 26 Q90 28 88 42 Q76 44 72 32Z" fill="#c1863f"/>
+          <path class="cat-head-patch" d="M74 26 Q90 28 88 42 Q76 44 72 32Z" fill="#d17a2e"/>
 
           <circle class="cat-head" cx="60" cy="46" r="30" fill="#faf6ee"/>
-          <!-- Large black patch covering the whole left side of the face (ear down
-             through the eye to the cheek), matching the reference's dominant
-             one-sided black face marking, plus a caramel crown patch between the
-             ears trailing down the right side, also matching the reference. -->
-          <path class="cat-head-patch" d="M30 30 Q20 40 24 54 Q30 64 42 62 Q50 56 48 42 Q46 30 30 30Z" fill="#1c1917"/>
-          <path class="cat-head-patch cat-head-patch--orange" d="M50 16 Q66 14 70 26 Q68 34 58 32 Q50 28 50 16Z" fill="#c1863f"/>
+          <!-- Black covers the left side of the face (ear down through the eye to the
+             cheek) and wraps up and across the forehead as one connected patch,
+             rather than the forehead being a separate white or orange area. An
+             orange "cap" patch sits on top of the head, above/behind the forehead
+             black, and white is left showing specifically around both eyes. -->
+          <path class="cat-head-patch" d="M30 30 Q20 40 24 54 Q30 64 42 62 Q50 56 48 42 Q48 26 62 22 Q70 20 74 26 Q68 32 56 34 Q48 36 46 30 Q40 28 30 30Z" fill="#1c1917"/>
+          <path class="cat-head-patch cat-head-patch--orange" d="M46 18 Q60 8 76 16 Q80 24 70 28 Q58 30 50 26 Q42 24 46 18Z" fill="#d17a2e"/>
 
           <!-- Left cheek ellipse recolored to black so it blends with the face patch
                above instead of painting white over part of it (this cheek shading
@@ -364,6 +370,10 @@ window.CatWidget = (function () {
           </g>
 
           <path d="M57 53 L63 53 L60 58Z" fill="#f2b9c4"/>
+          <!-- Black patch on the right side of the nose/muzzle, per the reference —
+             sized to clearly read as a marking rather than blend into the small
+             nose/mouth details right next to it, kept clear of the right eye above. -->
+          <path d="M62 52 Q71 51 70 58 Q67 63 60 61 Q58 56 62 52Z" fill="#1c1917"/>
           <path class="cat-mouth" d="M60 58 Q55 62 50 59 M60 58 Q65 62 70 59" fill="none" stroke="#2a1d16" stroke-width="1.6" stroke-linecap="round"/>
 
           <g stroke="#c9bfb2" stroke-width="1.2" stroke-linecap="round">
