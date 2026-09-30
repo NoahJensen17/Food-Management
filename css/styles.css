@@ -688,7 +688,7 @@ main:has(#view-home.active) {
   right: 0;
   top: 30%;
   bottom: 0;
-  background-color: #b9895a;
+  background-color: #c8945a;
   background-image:
     /* Plank seams (long boards, running toward the horizon) */
     repeating-linear-gradient(90deg,
@@ -702,7 +702,7 @@ main:has(#view-home.active) {
     repeating-linear-gradient(0deg,
       rgba(45, 20, 5, 0.1) 0, rgba(45, 20, 5, 0.1) 1.5px,
       transparent 1.5px, transparent 46%),
-    linear-gradient(180deg, #cc9c66, #ad7f4f);
+    linear-gradient(180deg, #d9ae74, #b9834f);
   background-size: 100% 100%, 100% 100%, 18% 100%, 100% 100%;
   background-position: 0 0, 0 0, 4% 0, 0 0;
 }
