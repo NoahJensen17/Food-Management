@@ -352,8 +352,11 @@ window.CatWidget = (function () {
           <path d="M36 40 L28 16 L50 32Z" fill="#1c1917"/>
           <path d="M84 40 L92 16 L70 32Z" fill="#faf6ee"/>
           <path d="M83 34 L89 20 L74 31Z" fill="#d17a2e"/>
-          <path class="cat-head-patch" d="M70 30 Q88 32 86 46 Q72 48 66 36Z" fill="#d17a2e"/>
           <circle class="cat-head" cx="60" cy="46" r="28" fill="#1c1917"/>
+          <!-- Both orange patches are drawn after (on top of) the black head circle
+               and kept well clear of its outer edge, so black fully surrounds each
+               patch with no white showing through between them. -->
+          <path class="cat-head-patch cat-head-patch--orange" d="M66 26 Q80 26 82 38 Q80 46 70 44 Q62 38 66 26Z" fill="#d17a2e"/>
           <path class="cat-head-patch cat-head-patch--orange" d="M42 30 Q56 26 60 38 Q54 46 44 42 Q38 36 42 30Z" fill="#d17a2e"/>
           <path d="M46 66 Q60 72 74 66" fill="none" stroke="#3a3330" stroke-width="2" stroke-linecap="round"/>
         </g>
@@ -393,13 +396,16 @@ window.CatWidget = (function () {
 
           <circle class="cat-head" cx="60" cy="46" r="30" fill="#faf6ee"/>
 
-          <!-- Black band framing the top/sides of the orange crown patch, giving more
-             black presence around it before the caramel patch is drawn on top. -->
-          <path class="cat-head-patch" d="M28 26 Q38 10 58 10 Q76 10 82 24 Q82 32 74 32 Q80 20 66 16 Q52 13 40 20 Q32 24 28 26Z" fill="#1c1917"/>
+          <!-- Black band that fully encircles the orange crown patch (drawn next):
+             wraps above, to both sides, AND below it, so no white shows between the
+             orange and the black anywhere around its border. A thin strip of white
+             is left only further down, right above the eyes. -->
+          <path class="cat-head-patch" d="M26 27 Q36 8 58 8 Q78 8 84 24 Q84 34 74 35 Q66 37 54 35 Q42 34 32 35 Q24 33 26 27Z" fill="#1c1917"/>
 
           <!-- Caramel crown patch: angled across the top of the head, wider over the
-             black-ear side, tapering off before the white-ear side. -->
-          <path class="cat-head-patch cat-head-patch--orange" d="M32 24 Q40 14 56 15 Q70 15 76 24 Q76 30 66 29 Q52 27 42 30 Q32 31 32 24Z" fill="#d17a2e"/>
+             black-ear side, tapering off before the white-ear side. Fully inset from
+             the black band's edges on every side. -->
+          <path class="cat-head-patch cat-head-patch--orange" d="M32 24 Q40 14 56 15 Q70 15 76 24 Q76 29 67 28 Q52 26 43 28 Q33 29 32 24Z" fill="#d17a2e"/>
 
           <!-- Black patch: covers the left ear base, wraps down through that eye and
              onto the cheek, staying clear of the nose/muzzle and the other eye. -->
