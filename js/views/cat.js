@@ -17,9 +17,16 @@ window.CatWidget = (function () {
 
   let root = null;
   let spriteEl = null;
-  let state = "sitting"; // "walking" | "sitting" | "lying-down" | "sleeping" | "startled" | "waking"
+  // Starts asleep on the rug (see render()'s first-load-only startup sequence below),
+  // rather than sitting — matches the intended "she was already here sleeping when you
+  // opened the app" first impression.
+  let state = "sleeping"; // "walking" | "sitting" | "lying-down" | "sleeping" | "startled" | "waking"
   let view = "toward"; // "away" | "toward" — which drawn pose is currently shown; never mirrored
-  let pos = { x: 50, y: 73 }; // percentage within the room; starts on the rug
+  let pos = { x: RUG.x, y: RUG.y }; // percentage within the room; starts on the rug
+  // Until this timestamp (Date.now()-based), onArrive() won't roll a sleep decision —
+  // used only for the first-load startup sequence's "stay active for a while" window,
+  // set up in render(). 0 means no active restriction.
+  let suppressSleepUntil = 0;
   let timers = [];
   let walkSessionStart = 0; // Date.now() when the current continuous walking session began
   // When a walkTo() is in flight (transitionend not yet seen), this resolves it
@@ -112,7 +119,7 @@ window.CatWidget = (function () {
     const dx = ((targetX - pos.x) / 100) * width;
     const dy = ((targetY - pos.y) / 100) * height;
     const distance = Math.hypot(dx, dy);
-    const speed = 28; // px per second
+    const speed = 36.4; // px per second (28 * 1.3 — 30% faster)
     const duration = Math.max(0.6, distance / speed);
 
     setView(dy < 0 ? "away" : "toward");
@@ -188,10 +195,18 @@ window.CatWidget = (function () {
 
     const onRug = isNear(RUG, 12);
     const roll = Math.random();
+    // During the first-load startup's "stay active" window, treat any roll that would
+    // normally start a sleep as a sit instead — she keeps walking/sitting until the
+    // window passes, then sleep rolls resume normally.
+    const sleepSuppressed = Date.now() < suppressSleepUntil;
 
     if (onRug) {
-      if (roll < 0.35) decideSleepSpot(true);
-      else if (roll < 0.7) {
+      if (roll < 0.35) {
+        if (sleepSuppressed) {
+          setState("sitting");
+          after(randBetween(SIT_MIN_MS, SIT_MAX_MS), () => scheduleNextWalk(200));
+        } else decideSleepSpot(true);
+      } else if (roll < 0.7) {
         setState("sitting");
         after(randBetween(SIT_MIN_MS, SIT_MAX_MS), () => scheduleNextWalk(200));
       } else scheduleNextWalk(randBetween(400, 1500));
@@ -199,7 +214,10 @@ window.CatWidget = (function () {
     }
 
     if (roll < 0.12) {
-      decideSleepSpot(false);
+      if (sleepSuppressed) {
+        setState("sitting");
+        after(randBetween(SIT_MIN_MS, SIT_MAX_MS), () => scheduleNextWalk(200));
+      } else decideSleepSpot(false);
     } else if (roll < 0.3) {
       setState("sitting");
       after(randBetween(SIT_MIN_MS, SIT_MAX_MS), () => scheduleNextWalk(200));
@@ -508,8 +526,17 @@ window.CatWidget = (function () {
 
     if (!initialized) {
       initialized = true;
-      setState("sitting");
-      after(randBetween(2000, 4000), () => scheduleNextWalk(200));
+      // First-load-only intro: she's already asleep on the rug (the default state/pos
+      // above) when the app opens. After 5s she wakes and stays active — walking and
+      // sitting, never sleeping — for a random 30s-2min window, then the normal
+      // sleep/sit/walk logic (onArrive/decideSleepSpot) takes over unrestricted from
+      // there on. This only ever runs once per page load: revisiting the Home tab
+      // after this point always hits the initialized branch below instead, leaving
+      // the cat exactly as she currently is, mid-routine.
+      after(5000, () => {
+        suppressSleepUntil = Date.now() + randBetween(30000, 120000);
+        wakeUpThenWalk();
+      });
     }
   }
 
