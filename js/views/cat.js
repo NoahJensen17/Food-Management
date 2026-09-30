@@ -375,11 +375,13 @@ window.CatWidget = (function () {
         <!-- Just a small peek of the tail showing past the top-right of the body/
              shoulder, rather than a long curl — base starts inside the body
              ellipse's silhouette (cx=60 cy=76 rx=32 ry=26) so the body drawn next
-             covers where it actually attaches. Solid black with a small orange
-             marking near the visible tip. -->
+             covers where it actually attaches. Curves further out and up so a clear
+             gap shows between the body silhouette and the visible tip, reading
+             clearly as a tail peeking out rather than hugging the body. Solid black
+             with a small orange marking near the visible tip. -->
         <g class="cat-tail">
-          <path d="M82 78 Q94 66 90 52" fill="none" stroke="#1c1917" stroke-width="12" stroke-linecap="round"/>
-          <path d="M91 60 Q90 55 91 51" fill="none" stroke="#d17a2e" stroke-width="12" stroke-linecap="round"/>
+          <path d="M80 80 Q102 68 98 46" fill="none" stroke="#1c1917" stroke-width="12" stroke-linecap="round"/>
+          <path d="M99 56 Q98 50 99 45" fill="none" stroke="#d17a2e" stroke-width="12" stroke-linecap="round"/>
         </g>
 
         <ellipse class="cat-body" cx="60" cy="76" rx="32" ry="26" fill="#faf6ee"/>
