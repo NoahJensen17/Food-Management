@@ -324,9 +324,13 @@ window.CatWidget = (function () {
   // caramel at its base, and very little white showing at all from this angle.
   function catSvgAway() {
     return svgWrap(`
+        <!-- Tail attaches at the base of the back (same spot the front view's tail
+             emerges from the body, mirrored left-right since we're now looking at her
+             from the opposite side), and curls up alongside the body just like the
+             front view's tail. -->
         <g class="cat-tail">
-          <path d="M60 96 Q66 70 52 50" fill="none" stroke="#d17a2e" stroke-width="12" stroke-linecap="round"/>
-          <path d="M58 68 Q52 58 52 50" fill="none" stroke="#1c1917" stroke-width="10" stroke-linecap="round"/>
+          <path d="M28 88 Q16 68 28 48" fill="none" stroke="#d17a2e" stroke-width="12" stroke-linecap="round"/>
+          <path d="M20 78 Q16 68 22 56" fill="none" stroke="#1c1917" stroke-width="8" stroke-linecap="round"/>
         </g>
 
         <!-- Legs painted before the body here (unlike the front view) so they sit
