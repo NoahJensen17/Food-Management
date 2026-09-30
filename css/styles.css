@@ -862,21 +862,6 @@ main {
   100% { transform: translateY(0); }
 }
 
-/* Turning around: a quick squash + settle pulse spanning the whole pivot (glance
-   toward viewer -> fully turned away). Applied to the persistent .cat-sprite__pivot
-   wrapper (never removed/re-inserted) rather than any shape inside the swappable SVG,
-   so the pulse plays once, continuously, across the pose swap instead of restarting
-   from scratch on freshly-inserted artwork each time the pose changes mid-animation. */
-.cat-sprite[data-state="turning"] .cat-sprite__pivot {
-  animation: cat-turn-squash 0.4s ease-in-out;
-}
-
-@keyframes cat-turn-squash {
-  0% { transform: scaleX(1) scaleY(1); }
-  50% { transform: scaleX(0.86) scaleY(1.06); }
-  100% { transform: scaleX(1) scaleY(1); }
-}
-
 /* Startled/petted reaction: quick bounce + floating hearts */
 .cat-sprite[data-state="startled"] {
   animation: cat-startle-bounce 0.4s ease-in-out;

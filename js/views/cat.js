@@ -17,8 +17,7 @@ window.CatWidget = (function () {
   let root = null;
   let spriteEl = null;
   let state = "sitting"; // "walking" | "sitting" | "lying-down" | "sleeping" | "startled" | "waking"
-  let facingRight = true;
-  let view = "side"; // "side" | "away" | "toward" — which drawn pose is currently shown
+  let view = "toward"; // "away" | "toward" — which drawn pose is currently shown; never mirrored
   let pos = { x: 50, y: 73 }; // percentage within the room; starts on the rug
   let timers = [];
 
@@ -63,11 +62,11 @@ window.CatWidget = (function () {
     spriteEl.dataset.state = state;
   }
 
-  // Swaps the sprite's drawn pose (side/away/toward) only when it actually changes, so
+  // Swaps the sprite's drawn pose (away/toward) only when it actually changes, so
   // mid-walk CSS animations on the current pose aren't restarted every frame. Only the
   // .cat-sprite__pose container's contents are replaced — the pivot wrapper and hearts/
-  // Zzz overlays are untouched, so any animation running on them (e.g. the turn pulse)
-  // keeps playing continuously across a pose swap instead of restarting on new markup.
+  // Zzz overlays are untouched, so any animation running on them keeps playing across a
+  // pose swap instead of restarting on new markup.
   function setView(next) {
     if (view === next) return;
     view = next;
@@ -78,24 +77,18 @@ window.CatWidget = (function () {
     spriteEl.style.left = pos.x + "%";
     spriteEl.style.top = pos.y + "%";
     const scale = depthScale(pos.y);
-    const flip = view === "side" && !facingRight ? -1 : 1;
-    spriteEl.style.transform = `translate(-50%, -50%) scale(${scale}) scaleX(${flip})`;
+    spriteEl.style.transform = `translate(-50%, -50%) scale(${scale})`;
   }
 
   // Converts a target percentage position into a CSS transition duration proportional
   // to distance, so the cat "walks" at a roughly constant speed instead of a fixed time.
-  // The pose (side/away/toward) is chosen from whichever axis dominates this particular
-  // move, so a mostly-sideways step shows the side view, a mostly-upward step shows the
-  // back of the cat walking away, etc. — instead of one sprite just mirroring in place.
-  //
-  // If this move stays in the side view but reverses horizontal direction from the
-  // previous walk, an instant scaleX flip would look like a flat image spinning in
-  // place. Instead, play a short three-beat pivot first — glance toward the viewer,
-  // then fully turn away, with a quick squash/settle pulse at the midpoint — before
-  // continuing in the side view facing the new direction. This is a sleight of hand
-  // (still swapped poses, not a true rotation), but the extra beats and the body pulse
-  // read as the cat's body turning rather than a flat image flipping in place.
-  function walkTo(targetX, targetY, skipTurnaround) {
+  // The pose is purely a function of the move's vertical component — any downward
+  // component uses the front-facing ("toward") pose, any upward component uses the
+  // back-facing ("away") pose, and a perfectly horizontal move defaults to "toward".
+  // There is no mirroring and no side view at all, so there is nothing that can ever
+  // visually "flip" — sideways and diagonal moves just slide the front/back pose to its
+  // new spot, the same way up/down moves already did.
+  function walkTo(targetX, targetY) {
     const { width, height } = roomSize();
     const dx = ((targetX - pos.x) / 100) * width;
     const dy = ((targetY - pos.y) / 100) * height;
@@ -103,24 +96,7 @@ window.CatWidget = (function () {
     const speed = 28; // px per second
     const duration = Math.max(0.6, distance / speed);
 
-    const nextFacingRight = targetX >= pos.x;
-    const isSideMove = Math.abs(dy) <= Math.abs(dx) * 1.3;
-    const reversedDirection = isSideMove && view === "side" && nextFacingRight !== facingRight && distance > 4;
-
-    if (!skipTurnaround && reversedDirection) {
-      playTurnaround(() => {
-        facingRight = nextFacingRight;
-        walkTo(targetX, targetY, true);
-      });
-      return;
-    }
-
-    facingRight = nextFacingRight;
-    if (isSideMove) {
-      setView("side");
-    } else {
-      setView(dy < 0 ? "away" : "toward");
-    }
+    setView(dy < 0 ? "away" : "toward");
 
     setState("walking");
     spriteEl.style.transitionDuration = duration + "s";
@@ -128,23 +104,6 @@ window.CatWidget = (function () {
     positionSprite();
 
     after(duration * 1000, onArrive);
-  }
-
-  function playTurnaround(onDone) {
-    setState("turning");
-    spriteEl.style.transitionDuration = "0s";
-
-    setView("toward");
-    positionSprite();
-
-    after(180, () => {
-      setView("away");
-      positionSprite();
-      after(220, () => {
-        setState("walking");
-        onDone();
-      });
-    });
   }
 
   // True once the cat has actually arrived at (approximately) the rug — makes sitting
@@ -210,7 +169,7 @@ window.CatWidget = (function () {
       wakeUpThenWalk();
       return;
     }
-    if (state === "startled" || state === "turning") return;
+    if (state === "startled") return;
 
     const prevState = state;
     clearTimers();
@@ -234,66 +193,6 @@ window.CatWidget = (function () {
         ${inner}
       </svg>
     `;
-  }
-
-  // Side profile: used facing left/right (mirrored via CSS scaleX). This is the pose
-  // with the most detail since it's shown most often (walking left-right on the floor).
-  function catSvgSide() {
-    return svgWrap(`
-        <g class="cat-tail">
-          <path d="M28 78 Q6 70 10 44 Q12 34 20 30" fill="none" stroke="#e8792c" stroke-width="12" stroke-linecap="round"/>
-        </g>
-        <g class="cat-legs">
-          <ellipse cx="42" cy="94" rx="8" ry="9" fill="#faf6ee"/>
-          <ellipse cx="78" cy="94" rx="8" ry="9" fill="#faf6ee"/>
-        </g>
-
-        <!-- Chubby round body -->
-        <ellipse class="cat-body" cx="60" cy="76" rx="34" ry="26" fill="#faf6ee"/>
-        <path class="cat-body-patch" d="M32 68 Q46 58 58 68 Q54 82 36 84 Q26 78 32 68Z" fill="#2b2320"/>
-        <path class="cat-body-patch cat-body-patch--orange" d="M76 64 Q94 68 90 86 Q74 92 68 78 Q70 68 76 64Z" fill="#e8792c"/>
-        <path class="cat-body-patch" d="M56 60 Q68 56 72 66 Q66 74 56 70Z" fill="#2b2320" opacity="0.85"/>
-
-        <g class="cat-head-group">
-          <!-- Ears (behind head circle) -->
-          <path d="M32 38 L24 14 L46 30Z" fill="#faf6ee"/>
-          <path d="M88 38 L96 14 L74 30Z" fill="#faf6ee"/>
-          <path d="M33 33 L28 19 L42 29Z" fill="#f2b9c4"/>
-          <path d="M87 33 L92 19 L78 29Z" fill="#f2b9c4"/>
-          <path d="M89 32 L94 20 L82 30Z" fill="#2b2320"/>
-          <path class="cat-head-patch" d="M78 28 Q92 30 90 42 Q80 46 74 36Z" fill="#e8792c"/>
-
-          <!-- Big round chubby head -->
-          <circle class="cat-head" cx="60" cy="46" r="30" fill="#faf6ee"/>
-          <path class="cat-head-patch" d="M30 40 Q24 52 34 60 Q46 56 44 42 Q38 36 30 40Z" fill="#2b2320"/>
-
-          <!-- Cheeks (chubby jowls) -->
-          <ellipse cx="38" cy="56" rx="10" ry="8" fill="#faf6ee"/>
-          <ellipse cx="82" cy="56" rx="10" ry="8" fill="#faf6ee"/>
-
-          <g class="cat-eyes">
-            <ellipse cx="48" cy="46" rx="4" ry="5.2" fill="#2a1d16"/>
-            <ellipse cx="72" cy="46" rx="4" ry="5.2" fill="#2a1d16"/>
-            <circle cx="49.2" cy="44.3" r="1.1" fill="#fff"/>
-            <circle cx="73.2" cy="44.3" r="1.1" fill="#fff"/>
-          </g>
-          <g class="cat-eyes-closed">
-            <path d="M43 47 Q48 51 53 47" fill="none" stroke="#2a1d16" stroke-width="2.2" stroke-linecap="round"/>
-            <path d="M67 47 Q72 51 77 47" fill="none" stroke="#2a1d16" stroke-width="2.2" stroke-linecap="round"/>
-          </g>
-
-          <path d="M57 52 L63 52 L60 57Z" fill="#f2b9c4"/>
-          <path class="cat-mouth" d="M60 57 Q55 61 50 58 M60 57 Q65 61 70 58" fill="none" stroke="#2a1d16" stroke-width="1.6" stroke-linecap="round"/>
-
-          <!-- Whiskers -->
-          <g stroke="#c9bfb2" stroke-width="1.2" stroke-linecap="round">
-            <path d="M30 50 L14 47" />
-            <path d="M30 55 L13 56" />
-            <path d="M90 50 L106 47" />
-            <path d="M90 55 L107 56" />
-          </g>
-        </g>
-    `);
   }
 
   // Rear view: used when walking "away" (deeper into the room, toward the horizon).
@@ -330,9 +229,8 @@ window.CatWidget = (function () {
     `);
   }
 
-  // Front view: used when walking "toward" the viewer (down/forward on the floor).
-  // Full face, but a slightly wider/rounder silhouette than the side view (no visible
-  // legs stride) so it doesn't read as identical to the side pose from the front.
+  // Front view: used for any move with a downward (or purely horizontal) component —
+  // full face, no mirroring.
   function catSvgToward() {
     return svgWrap(`
         <g class="cat-tail">
@@ -385,14 +283,12 @@ window.CatWidget = (function () {
   }
 
   function catSvgFor(v) {
-    if (v === "away") return catSvgAway();
-    if (v === "toward") return catSvgToward();
-    return catSvgSide();
+    return v === "away" ? catSvgAway() : catSvgToward();
   }
 
   function render(container) {
     root = container;
-    view = "side";
+    view = "toward";
     root.innerHTML = `
       <div class="cat-room">
         <div class="cat-room__window"></div>
