@@ -327,9 +327,11 @@ window.CatWidget = (function () {
         <!-- Tail attaches at the base of the back (same spot the front view's tail
              emerges from the body, mirrored left-right since we're now looking at her
              from the opposite side), and curls up alongside the body just like the
-             front view's tail. -->
+             front view's tail. Base starts well inside the body ellipse's silhouette
+             (cx=60 cy=76 rx=30 ry=26) so the body drawn next convincingly covers
+             where it actually attaches. -->
         <g class="cat-tail">
-          <path d="M28 88 Q16 68 28 48" fill="none" stroke="#d17a2e" stroke-width="12" stroke-linecap="round"/>
+          <path d="M42 86 Q16 68 28 48" fill="none" stroke="#d17a2e" stroke-width="12" stroke-linecap="round"/>
           <path d="M20 78 Q16 68 22 56" fill="none" stroke="#1c1917" stroke-width="8" stroke-linecap="round"/>
         </g>
 
@@ -371,8 +373,11 @@ window.CatWidget = (function () {
   // full face, no mirroring.
   function catSvgToward() {
     return svgWrap(`
+        <!-- Base starts well inside the body ellipse's silhouette (cx=60 cy=76 rx=32
+             ry=26) so the body drawn next convincingly covers where the tail actually
+             attaches, with only the curling length visible past its edge. -->
         <g class="cat-tail">
-          <path d="M92 88 Q104 68 92 48" fill="none" stroke="#d17a2e" stroke-width="12" stroke-linecap="round"/>
+          <path d="M78 86 Q104 68 92 48" fill="none" stroke="#d17a2e" stroke-width="12" stroke-linecap="round"/>
           <path d="M100 78 Q104 68 98 56" fill="none" stroke="#1c1917" stroke-width="8" stroke-linecap="round"/>
         </g>
 
