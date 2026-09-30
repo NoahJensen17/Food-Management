@@ -276,8 +276,8 @@ window.CatWidget = (function () {
   function catSvgAway() {
     return svgWrap(`
         <g class="cat-tail">
-          <path d="M60 96 Q66 70 52 50" fill="none" stroke="#e8792c" stroke-width="12" stroke-linecap="round"/>
-          <path d="M60 90 Q64 74 55 58" fill="none" stroke="#2b2320" stroke-width="5" stroke-linecap="round" opacity="0.55"/>
+          <path d="M60 96 Q66 70 52 50" fill="none" stroke="#c1863f" stroke-width="12" stroke-linecap="round"/>
+          <path d="M60 90 Q64 74 55 58" fill="none" stroke="#1c1917" stroke-width="5" stroke-linecap="round" opacity="0.55"/>
         </g>
 
         <!-- Legs painted before the body here (unlike the front view) so they sit
@@ -289,18 +289,18 @@ window.CatWidget = (function () {
         </g>
 
         <ellipse class="cat-body" cx="60" cy="76" rx="30" ry="26" fill="#faf6ee"/>
-        <path class="cat-body-patch" d="M32 62 Q52 50 66 62 Q62 84 40 86 Q28 76 32 62Z" fill="#2b2320"/>
-        <path class="cat-body-patch cat-body-patch--orange" d="M60 56 Q82 54 86 74 Q76 90 58 80 Q54 66 60 56Z" fill="#e8792c"/>
-        <path class="cat-body-patch" d="M70 82 Q80 88 76 96 Q66 96 66 88Z" fill="#2b2320"/>
+        <path class="cat-body-patch" d="M32 62 Q52 50 66 62 Q62 84 40 86 Q28 76 32 62Z" fill="#1c1917"/>
+        <path class="cat-body-patch cat-body-patch--orange" d="M60 56 Q82 54 86 74 Q76 90 58 80 Q54 66 60 56Z" fill="#c1863f"/>
+        <path class="cat-body-patch" d="M70 82 Q80 88 76 96 Q66 96 66 88Z" fill="#1c1917"/>
 
         <g class="cat-head-group">
           <path d="M36 40 L28 16 L50 32Z" fill="#faf6ee"/>
           <path d="M84 40 L92 16 L70 32Z" fill="#faf6ee"/>
-          <path d="M37 34 L31 20 L46 31Z" fill="#2b2320"/>
-          <path d="M83 34 L89 20 L74 31Z" fill="#e8792c"/>
-          <path class="cat-head-patch" d="M70 30 Q88 32 86 46 Q72 48 66 36Z" fill="#e8792c"/>
+          <path d="M37 34 L31 20 L46 31Z" fill="#1c1917"/>
+          <path d="M83 34 L89 20 L74 31Z" fill="#c1863f"/>
+          <path class="cat-head-patch" d="M70 30 Q88 32 86 46 Q72 48 66 36Z" fill="#c1863f"/>
           <circle class="cat-head" cx="60" cy="46" r="28" fill="#faf6ee"/>
-          <path class="cat-head-patch" d="M32 38 Q24 52 36 62 Q50 58 48 42 Q40 34 32 38Z" fill="#2b2320"/>
+          <path class="cat-head-patch" d="M32 38 Q24 52 36 62 Q50 58 48 42 Q40 34 32 38Z" fill="#1c1917"/>
           <path d="M46 66 Q60 72 74 66" fill="none" stroke="#e0d3c2" stroke-width="2" stroke-linecap="round"/>
         </g>
     `);
@@ -311,12 +311,12 @@ window.CatWidget = (function () {
   function catSvgToward() {
     return svgWrap(`
         <g class="cat-tail">
-          <path d="M92 88 Q104 68 92 48" fill="none" stroke="#e8792c" stroke-width="12" stroke-linecap="round"/>
+          <path d="M92 88 Q104 68 92 48" fill="none" stroke="#c1863f" stroke-width="12" stroke-linecap="round"/>
         </g>
 
         <ellipse class="cat-body" cx="60" cy="76" rx="32" ry="26" fill="#faf6ee"/>
-        <path class="cat-body-patch" d="M34 62 Q48 54 58 64 Q52 78 36 80 Q28 72 34 62Z" fill="#2b2320"/>
-        <path class="cat-body-patch cat-body-patch--orange" d="M70 60 Q86 62 84 78 Q70 84 64 72 Q64 64 70 60Z" fill="#e8792c"/>
+        <path class="cat-body-patch" d="M34 62 Q48 54 58 64 Q52 78 36 80 Q28 72 34 62Z" fill="#1c1917"/>
+        <path class="cat-body-patch cat-body-patch--orange" d="M70 60 Q86 62 84 78 Q70 84 64 72 Q64 64 70 60Z" fill="#c1863f"/>
 
         <g class="cat-legs">
           <ellipse class="cat-leg cat-leg--left" cx="44" cy="100" rx="8" ry="10" fill="#faf6ee" stroke="#e4d9c8" stroke-width="1.5"/>
@@ -328,10 +328,10 @@ window.CatWidget = (function () {
           <path d="M86 38 L94 14 L72 30Z" fill="#faf6ee"/>
           <path d="M35 33 L30 19 L44 29Z" fill="#f2b9c4"/>
           <path d="M85 33 L90 19 L76 29Z" fill="#f2b9c4"/>
-          <path class="cat-head-patch" d="M74 26 Q90 28 88 42 Q76 44 72 32Z" fill="#e8792c"/>
+          <path class="cat-head-patch" d="M74 26 Q90 28 88 42 Q76 44 72 32Z" fill="#c1863f"/>
 
           <circle class="cat-head" cx="60" cy="46" r="30" fill="#faf6ee"/>
-          <path class="cat-head-patch" d="M32 40 Q26 52 36 60 Q48 56 46 42 Q40 36 32 40Z" fill="#2b2320"/>
+          <path class="cat-head-patch" d="M32 40 Q26 52 36 60 Q48 56 46 42 Q40 36 32 40Z" fill="#1c1917"/>
 
           <ellipse cx="40" cy="56" rx="10" ry="8" fill="#faf6ee"/>
           <ellipse cx="80" cy="56" rx="10" ry="8" fill="#faf6ee"/>
