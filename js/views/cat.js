@@ -324,15 +324,14 @@ window.CatWidget = (function () {
   // caramel at its base, and very little white showing at all from this angle.
   function catSvgAway() {
     return svgWrap(`
-        <!-- Tail attaches at the base of the back (same spot the front view's tail
-             emerges from the body, mirrored left-right since we're now looking at her
-             from the opposite side), and curls up alongside the body just like the
-             front view's tail. Base starts well inside the body ellipse's silhouette
-             (cx=60 cy=76 rx=30 ry=26) so the body drawn next convincingly covers
-             where it actually attaches. -->
+        <!-- Stems from the bottom of the body circle (cx=60 cy=76 rx=30 ry=26, so
+             its bottom edge is y=102) and branches off to the left, curling up to
+             about the same height as the front view's shoulder-peek (~y=52) relative
+             to the cat's overall height. Solid black with a single orange marking
+             partway along its length. -->
         <g class="cat-tail">
-          <path d="M42 86 Q16 68 28 48" fill="none" stroke="#d17a2e" stroke-width="12" stroke-linecap="round"/>
-          <path d="M20 78 Q16 68 22 56" fill="none" stroke="#1c1917" stroke-width="8" stroke-linecap="round"/>
+          <path d="M54 100 Q20 96 18 70 Q18 58 30 52" fill="none" stroke="#1c1917" stroke-width="12" stroke-linecap="round"/>
+          <path d="M19 78 Q18 70 20 63" fill="none" stroke="#d17a2e" stroke-width="12" stroke-linecap="round"/>
         </g>
 
         <!-- Legs painted before the body here (unlike the front view) so they sit
@@ -373,12 +372,14 @@ window.CatWidget = (function () {
   // full face, no mirroring.
   function catSvgToward() {
     return svgWrap(`
-        <!-- Base starts well inside the body ellipse's silhouette (cx=60 cy=76 rx=32
-             ry=26) so the body drawn next convincingly covers where the tail actually
-             attaches, with only the curling length visible past its edge. -->
+        <!-- Just a small peek of the tail showing past the top-right of the body/
+             shoulder, rather than a long curl — base starts inside the body
+             ellipse's silhouette (cx=60 cy=76 rx=32 ry=26) so the body drawn next
+             covers where it actually attaches. Solid black with a small orange
+             marking near the visible tip. -->
         <g class="cat-tail">
-          <path d="M78 86 Q104 68 92 48" fill="none" stroke="#d17a2e" stroke-width="12" stroke-linecap="round"/>
-          <path d="M100 78 Q104 68 98 56" fill="none" stroke="#1c1917" stroke-width="8" stroke-linecap="round"/>
+          <path d="M82 78 Q94 66 90 52" fill="none" stroke="#1c1917" stroke-width="12" stroke-linecap="round"/>
+          <path d="M91 60 Q90 55 91 51" fill="none" stroke="#d17a2e" stroke-width="12" stroke-linecap="round"/>
         </g>
 
         <ellipse class="cat-body" cx="60" cy="76" rx="32" ry="26" fill="#faf6ee"/>
