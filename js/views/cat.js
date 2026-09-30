@@ -349,10 +349,10 @@ window.CatWidget = (function () {
         <path d="M78 86 Q86 84 86 92 Q80 96 76 92 Q75 88 78 86Z" fill="#d17a2e"/>
 
         <g class="cat-head-group">
-          <path d="M32 44 L20 2 L54 30Z" fill="#1c1917"/>
-          <path d="M88 44 L100 2 L66 30Z" fill="#faf6ee"/>
-          <path d="M86 32 L95 6 L70 28Z" fill="#d17a2e"/>
-          <circle class="cat-head" cx="60" cy="46" r="28" fill="#1c1917"/>
+          <path d="M36 40 L28 16 L50 32Z" fill="#1c1917"/>
+          <path d="M84 40 L92 16 L70 32Z" fill="#faf6ee"/>
+          <path d="M83 34 L89 20 L74 31Z" fill="#d17a2e"/>
+          <circle class="cat-head" cx="60" cy="46" r="30" fill="#1c1917"/>
           <!-- Both orange patches are drawn after (on top of) the black head circle
                and kept well clear of its outer edge, so black fully surrounds each
                patch with no white showing through between them. -->
@@ -390,9 +390,9 @@ window.CatWidget = (function () {
              (viewer's left) black with a black patch wrapping down through that eye
              and cheek, the other ear white, and a caramel crown patch angled across
              the top of the head toward the black side. Eyes are amber/gold. -->
-          <path d="M30 42 L18 2 L52 28Z" fill="#1c1917"/>
-          <path d="M90 42 L102 2 L68 28Z" fill="#faf6ee"/>
-          <path d="M88 30 L97 6 L72 26Z" fill="#f2b9c4"/>
+          <path d="M34 38 L26 14 L48 30Z" fill="#1c1917"/>
+          <path d="M86 38 L94 14 L72 30Z" fill="#faf6ee"/>
+          <path d="M85 33 L90 19 L76 29Z" fill="#f2b9c4"/>
 
           <circle class="cat-head" cx="60" cy="46" r="30" fill="#faf6ee"/>
 
