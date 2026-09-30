@@ -696,11 +696,11 @@ main {
   pointer-events: none;
 }
 
-/* A screen door: fine mesh texture (translucent crosshatch, not clear glass panes),
-   a single horizontal crossbar at typical push-bar height, and a kick-plate strip at
-   the bottom. Extends above the room's top edge and gets clipped by .cat-room's
-   overflow:hidden, like a door taller than the available wall space — no top border or
-   rounded top corners, since that edge is meant to look cut off rather than framed. */
+/* A sliding glass door: two glass panels (left fixed, right sliding) in a wooden
+   frame, with a vertical wooden bar handle on the sliding (right) panel. Extends above
+   the room's top edge and gets clipped by .cat-room's overflow:hidden, like a door
+   taller than the available wall space — no top border or rounded top corners, since
+   that edge is meant to look cut off rather than framed. */
 .cat-room__window {
   position: absolute;
   top: -35%;
@@ -708,37 +708,56 @@ main {
   transform: translateX(-50%);
   width: 26%;
   height: 89%;
-  background-color: #dce6da;
-  background-image:
-    repeating-linear-gradient(90deg, rgba(60, 80, 65, 0.22) 0, rgba(60, 80, 65, 0.22) 1px, transparent 1px, transparent 6px),
-    repeating-linear-gradient(0deg, rgba(60, 80, 65, 0.22) 0, rgba(60, 80, 65, 0.22) 1px, transparent 1px, transparent 6px),
-    linear-gradient(to bottom, #e2ebe0, #cdd9ca);
+  background: linear-gradient(to bottom, #cfe8f7, #eaf4fb);
   border: 5px solid #8a6a45;
   border-top: none;
   border-radius: 0;
 }
 
 .cat-room__window::before {
-  /* Horizontal push-bar, typical mid-height crossbar on a screen door */
+  /* Center track/divider between the two panels */
   content: "";
   position: absolute;
-  top: 62%;
-  left: -5px;
-  right: -5px;
-  height: 8px;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  transform: translateX(-50%);
   background: #8a6a45;
 }
 
 .cat-room__window::after {
-  /* Kick-plate at the bottom of the door */
+  /* Right panel: the sliding half, drawn slightly darker/glossier to read as a
+     separate pane of glass than the fixed left half. */
   content: "";
   position: absolute;
+  top: 0;
+  right: 0;
   bottom: 0;
-  left: -5px;
-  right: -5px;
-  height: 12%;
-  background: #8a6a45;
-  opacity: 0.85;
+  width: 50%;
+  background: linear-gradient(to bottom, #c3ddf0, #dcedf9);
+}
+
+.cat-room__door-handle {
+  /* Vertical wooden bar handle, mounted on the inner edge of the sliding (right)
+     panel. A pseudo-element's ::after paints after real child elements in the same
+     stacking context, so .cat-room__window::after (the right glass panel) would
+     otherwise paint over this real child div — z-index (with position already set)
+     lifts it above that panel.
+     The door (.cat-room__window) is 89% tall starting at -35% of the room, so the
+     room's visible top falls at (0 - -35) / 89 = ~39% down the door, meaning only the
+     door's lower ~61% is ever visible. A real handle sits around the door's true
+     vertical middle (50% of its full height) — just below where the visible area
+     begins — so it's placed starting a little past that clip line. */
+  position: absolute;
+  z-index: 1;
+  top: 44%;
+  height: 26%;
+  left: calc(50% + 8px);
+  width: 5px;
+  background: #6b4e30;
+  border-radius: 3px;
+  box-shadow: 1px 0 1px rgba(0, 0, 0, 0.15);
 }
 
 /* Square rug: the whole rug is a white/blue argyle diamond pattern (not just an inset

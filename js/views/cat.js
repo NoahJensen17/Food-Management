@@ -312,7 +312,9 @@ window.CatWidget = (function () {
     view = "toward";
     root.innerHTML = `
       <div class="cat-room">
-        <div class="cat-room__window"></div>
+        <div class="cat-room__window">
+          <div class="cat-room__door-handle"></div>
+        </div>
         <div class="cat-room__floor"></div>
         <div class="cat-room__sunlight"></div>
         <div class="cat-room__rug"></div>
