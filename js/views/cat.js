@@ -324,14 +324,15 @@ window.CatWidget = (function () {
   // caramel at its base, and very little white showing at all from this angle.
   function catSvgAway() {
     return svgWrap(`
-        <!-- Stems from the bottom of the body circle (cx=60 cy=76 rx=30 ry=26, so
-             its bottom edge is y=102) and branches off to the left, curling up to
-             about the same height as the front view's shoulder-peek (~y=52) relative
-             to the cat's overall height. Solid black with a single orange marking
-             partway along its length. -->
+        <!-- Stems from the lower-left of the body circle (cx=60 cy=76 rx=30 ry=26),
+             kept above the leg zone (y~86-106) so the legs drawn next are visibly
+             poking out from under the body rather than being covered by the tail.
+             Branches left and curls up to about the same height as the front view's
+             shoulder-peek (~y=52) relative to the cat's overall height. Solid black
+             with a single orange marking partway along its length. -->
         <g class="cat-tail">
-          <path d="M54 100 Q20 96 18 70 Q18 58 30 52" fill="none" stroke="#1c1917" stroke-width="12" stroke-linecap="round"/>
-          <path d="M19 78 Q18 70 20 63" fill="none" stroke="#d17a2e" stroke-width="12" stroke-linecap="round"/>
+          <path d="M46 84 Q20 82 18 62 Q18 55 30 50" fill="none" stroke="#1c1917" stroke-width="12" stroke-linecap="round"/>
+          <path d="M19 70 Q18 63 20 57" fill="none" stroke="#d17a2e" stroke-width="12" stroke-linecap="round"/>
         </g>
 
         <!-- Legs painted before the body here (unlike the front view) so they sit
