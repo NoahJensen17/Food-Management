@@ -4,6 +4,8 @@ window.ViewHome = (function () {
   async function render() {
     const cfg = window.APP_CONFIG;
 
+    window.CatWidget.destroy();
+
     el().innerHTML = `
       <div class="home-greeting">Welcome, ${cfg.greetingName}</div>
 
@@ -19,11 +21,17 @@ window.ViewHome = (function () {
         <div class="card-title">Verse of the Day</div>
         <div id="verse-body">Loading&hellip;</div>
       </div>
+
+      <div class="card" id="cat-card">
+        <div class="card-title">Whiskers</div>
+        <div id="cat-widget"></div>
+      </div>
     `;
 
     document.getElementById("refresh-weather").addEventListener("click", loadWeather);
     loadWeather();
     loadVerse();
+    window.CatWidget.render(document.getElementById("cat-widget"));
   }
 
   async function loadWeather() {
