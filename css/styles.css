@@ -623,11 +623,9 @@ main {
 .cat-room {
   position: relative;
   width: 100%;
-  /* Responsive height: scales down on shorter viewports (small phones) instead of a
-     fixed px value that only fits full-size screens, while capping how tall it gets on
-     larger ones. */
-  height: min(210px, 27vh);
-  min-height: 160px;
+  /* Prioritizes giving the cat a spacious room over avoiding a scrollbar; the Home
+     screen may need a small scroll on shorter phones as a result. */
+  height: 320px;
   border-radius: var(--radius-md);
   overflow: hidden;
   /* Wall (background) above the horizon line at 30%, light brown with an orange hue.
@@ -683,8 +681,8 @@ main {
 
 /* Sunlight: a soft trapezoid of light falling from the window onto the wood floor. Its
    top edge is anchored to the window's actual left/right edges (35%/65% of room width,
-   since .cat-room__window is 30% wide centered at 50%) so the light plausibly comes
-   from that window rather than an arbitrary cone; it widens toward the viewer at the
+   since .cat-room__window is 26% wide centered at 50%) so the light plausibly comes
+   from that door rather than an arbitrary cone; it widens toward the viewer at the
    same rate on both sides for a realistic, symmetric light-throw angle. */
 .cat-room__sunlight {
   position: absolute;
@@ -692,51 +690,55 @@ main {
   right: 0;
   top: 0;
   bottom: 0;
-  clip-path: polygon(35% 0%, 65% 0%, 93% 100%, 7% 100%);
+  clip-path: polygon(37% 0%, 63% 0%, 91% 100%, 9% 100%);
   background: linear-gradient(180deg, rgba(255, 246, 214, 0.75), rgba(255, 246, 214, 0.28));
   mix-blend-mode: soft-light;
   pointer-events: none;
 }
 
-/* Extends above the room's top edge and gets clipped by .cat-room's overflow:hidden,
-   like a door/window taller than the available wall space — no top border or rounded
-   top corners, since that edge is meant to look cut off rather than framed. */
+/* A screen door: fine mesh texture (translucent crosshatch, not clear glass panes),
+   a single horizontal crossbar at typical push-bar height, and a kick-plate strip at
+   the bottom. Extends above the room's top edge and gets clipped by .cat-room's
+   overflow:hidden, like a door taller than the available wall space — no top border or
+   rounded top corners, since that edge is meant to look cut off rather than framed. */
 .cat-room__window {
   position: absolute;
   top: -35%;
   left: 50%;
   transform: translateX(-50%);
-  width: 30%;
+  width: 26%;
   height: 89%;
-  background: linear-gradient(to bottom, #cfe8f7, #eaf4fb);
-  border: 4px solid #d8c3a5;
+  background-color: #dce6da;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(60, 80, 65, 0.22) 0, rgba(60, 80, 65, 0.22) 1px, transparent 1px, transparent 6px),
+    repeating-linear-gradient(0deg, rgba(60, 80, 65, 0.22) 0, rgba(60, 80, 65, 0.22) 1px, transparent 1px, transparent 6px),
+    linear-gradient(to bottom, #e2ebe0, #cdd9ca);
+  border: 5px solid #8a6a45;
   border-top: none;
-  border-radius: 0 0 4px 4px;
-}
-
-.cat-room__window::before,
-.cat-room__window::after {
-  content: "";
-  position: absolute;
-  background: #d8c3a5;
+  border-radius: 0;
 }
 
 .cat-room__window::before {
-  /* Vertical mullion */
-  left: 50%;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  transform: translateX(-50%);
+  /* Horizontal push-bar, typical mid-height crossbar on a screen door */
+  content: "";
+  position: absolute;
+  top: 62%;
+  left: -5px;
+  right: -5px;
+  height: 8px;
+  background: #8a6a45;
 }
 
 .cat-room__window::after {
-  /* Horizontal mullion */
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 3px;
-  transform: translateY(-50%);
+  /* Kick-plate at the bottom of the door */
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: -5px;
+  right: -5px;
+  height: 12%;
+  background: #8a6a45;
+  opacity: 0.85;
 }
 
 /* Square rug: the whole rug is a white/blue argyle diamond pattern (not just an inset
@@ -745,8 +747,8 @@ main {
   position: absolute;
   left: 50%;
   top: 34%;
-  width: 30%;
-  height: 16%;
+  width: 28%;
+  height: 26%;
   transform: translateX(-50%);
   border: 3px solid #2f4f70;
   border-radius: 6px;

@@ -13,7 +13,7 @@ window.CatWidget = (function () {
   const FLOOR_BOTTOM = 92; // % — leaves a little margin above the room's bottom edge
   const HORIZON_LEFT = 30; // % — walkable area's left edge at the horizon
   const HORIZON_RIGHT = 70; // % — walkable area's right edge at the horizon
-  const RUG = { x: 50, y: 42 };
+  const RUG = { x: 50, y: 47 };
 
   let root = null;
   let spriteEl = null;
