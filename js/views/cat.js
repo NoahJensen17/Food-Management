@@ -22,6 +22,14 @@ window.CatWidget = (function () {
   let pos = { x: 50, y: 73 }; // percentage within the room; starts on the rug
   let timers = [];
   let walkSessionStart = 0; // Date.now() when the current continuous walking session began
+  // When a walkTo() is in flight (transitionend not yet seen), this resolves it
+  // immediately: state/pos are already the arrival values, so this just runs the
+  // arrival callback (onArrive/startLyingDown) once. Cleared once the arrival has
+  // actually happened. render() calls this before rebuilding the DOM so a walk that
+  // was in flight when the Home tab was left can never survive as a dangling
+  // listener on a detached sprite node — see render()'s call below for why that
+  // matters (each Home visit creates a brand-new sprite element).
+  let flushPendingArrival = null;
 
   // Depth scale: 1 at the bottom (closest), shrinking toward the horizon (furthest),
   // so the same sprite reads as "further back in the room" rather than just "higher up".
@@ -42,6 +50,12 @@ window.CatWidget = (function () {
   function clearTimers() {
     timers.forEach((t) => clearTimeout(t));
     timers = [];
+    // A genuine interruption (tap, etc.) should discard the pending arrival outright,
+    // not run it — only cancel, never flush, from here.
+    if (flushPendingArrival) {
+      flushPendingArrival.cancel();
+      flushPendingArrival = null;
+    }
   }
 
   function after(ms, fn) {
@@ -108,7 +122,38 @@ window.CatWidget = (function () {
     pos = { x: targetX, y: targetY };
     positionSprite();
 
-    after(duration * 1000, sleepOnArrival ? startLyingDown : onArrive);
+    // The pose (e.g. sleeping) must never switch while the sprite is still visually
+    // sliding to its destination. Rather than trust the setTimeout below to line up
+    // exactly with the CSS transition's real end (it can drift under tab throttling
+    // or scheduling jitter, letting a "lying-down"/"sleeping" state apply mid-slide),
+    // wait for the actual transitionend event and only fall back to the timer if the
+    // browser never fires one (e.g. a zero-distance move that changes no property).
+    //
+    // If the Home tab is left and re-rendered before either fires, this listener ends
+    // up on a now-detached sprite node and would never fire on its own — flushed
+    // explicitly by render() instead (see flushPendingArrival). pos/state are already
+    // set to the arrival values above, so flushing just means running the arrival
+    // callback once; render()'s own snap-to-pos logic (on the fresh node) then shows
+    // her already arrived, never mid-slide.
+    const thisSpriteEl = spriteEl;
+    const onDone = sleepOnArrival ? startLyingDown : onArrive;
+    let settled = false;
+    const cleanup = () => {
+      thisSpriteEl.removeEventListener("transitionend", onTransitionEnd);
+      if (flushPendingArrival && flushPendingArrival.cleanup === cleanup) flushPendingArrival = null;
+    };
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      onDone();
+    };
+    const onTransitionEnd = (e) => {
+      if (e.target === thisSpriteEl && e.propertyName === "left") finish();
+    };
+    thisSpriteEl.addEventListener("transitionend", onTransitionEnd);
+    flushPendingArrival = { cleanup, flush: finish, cancel: cleanup };
+    after(duration * 1000 + 150, finish);
   }
 
   // True once the cat has actually arrived at (approximately) the rug — makes sitting
@@ -348,6 +393,10 @@ window.CatWidget = (function () {
 
           <circle class="cat-head" cx="60" cy="46" r="30" fill="#faf6ee"/>
 
+          <!-- Black band framing the top/sides of the orange crown patch, giving more
+             black presence around it before the caramel patch is drawn on top. -->
+          <path class="cat-head-patch" d="M28 26 Q38 10 58 10 Q76 10 82 24 Q82 32 74 32 Q80 20 66 16 Q52 13 40 20 Q32 24 28 26Z" fill="#1c1917"/>
+
           <!-- Caramel crown patch: angled across the top of the head, wider over the
              black-ear side, tapering off before the white-ear side. -->
           <path class="cat-head-patch cat-head-patch--orange" d="M32 24 Q40 14 56 15 Q70 15 76 24 Q76 30 66 29 Q52 27 42 30 Q32 31 32 24Z" fill="#d17a2e"/>
@@ -357,8 +406,8 @@ window.CatWidget = (function () {
           <path class="cat-head-patch" d="M30 26 Q24 34 26 44 Q24 50 29 57 Q36 64 44 60 Q50 54 47 46 Q49 36 42 30 Q36 26 30 26Z" fill="#1c1917"/>
 
           <g class="cat-eyes">
-            <ellipse cx="48" cy="47" rx="4.6" ry="5.8" fill="#c98a1e"/>
-            <ellipse cx="72" cy="47" rx="4.6" ry="5.8" fill="#c98a1e"/>
+            <ellipse cx="48" cy="47" rx="4.6" ry="5.8" fill="#a8c93c"/>
+            <ellipse cx="72" cy="47" rx="4.6" ry="5.8" fill="#a8c93c"/>
             <ellipse cx="48" cy="47" rx="2" ry="4.4" fill="#2a1d16"/>
             <ellipse cx="72" cy="47" rx="2" ry="4.4" fill="#2a1d16"/>
             <circle cx="49.3" cy="45.2" r="1.2" fill="#fff"/>
@@ -395,6 +444,15 @@ window.CatWidget = (function () {
   let initialized = false;
 
   function render(container) {
+    // Resolve any walk that was still in flight when this tab was last left, before
+    // reading state/pos/view below — see walkTo()'s comment for why this can't just
+    // rely on the old sprite node's own timer/transitionend firing on its own.
+    if (flushPendingArrival) {
+      const flush = flushPendingArrival.flush;
+      flushPendingArrival = null;
+      flush();
+    }
+
     root = container;
     root.innerHTML = `
       <div class="cat-room">
