@@ -886,6 +886,42 @@ main:has(#view-home.active) {
   pointer-events: none;
 }
 
+/* "Hi Mom" speech bubble: shown once, right when she wakes from the first-load
+   startup sleep (see cat.js's showGreeting(), called only from that one-time
+   sequence) — positioned above the top-right of the sprite like the Zzz indicator. */
+.cat-greeting {
+  position: absolute;
+  top: -22px;
+  left: 68%;
+  padding: 3px 8px;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #2a1d16;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(45, 20, 5, 0.25);
+  opacity: 0;
+  transform: translateY(4px) scale(0.8);
+  transform-origin: bottom left;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.cat-greeting::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 14px;
+  width: 8px;
+  height: 8px;
+  background: #ffffff;
+  transform: rotate(45deg);
+}
+.cat-sprite--greeting .cat-greeting {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
 /* Walking: legs alternate out of phase with a bigger lift + a slight forward/back
    shift, so the motion reads as actual stepping rather than the whole body bobbing
    uniformly (which was barely visible at phone size). Tail sway kept as before. */

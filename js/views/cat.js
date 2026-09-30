@@ -85,6 +85,15 @@ window.CatWidget = (function () {
     spriteEl.dataset.state = state;
   }
 
+  // Shows the "Hi Mom" greeting bubble for a few seconds, then hides it. Only ever
+  // called once, right when she wakes from the first-load startup sleep (see
+  // render()'s startup sequence) — not from the general wakeUpThenWalk() used for
+  // every other nap, so this never repeats after the first time the app is opened.
+  function showGreeting() {
+    spriteEl.classList.add("cat-sprite--greeting");
+    after(3500, () => spriteEl.classList.remove("cat-sprite--greeting"));
+  }
+
   // Swaps the sprite's drawn pose (away/toward) only when it actually changes, so
   // mid-walk CSS animations on the current pose aren't restarted every frame. Only the
   // .cat-sprite__pose container's contents are replaced — the pivot wrapper and hearts/
@@ -513,6 +522,7 @@ window.CatWidget = (function () {
           </div>
           <div class="cat-zzz" aria-hidden="true">Z z z</div>
           <div class="cat-purr" aria-hidden="true">Purr</div>
+          <div class="cat-greeting" aria-hidden="true">Hi Mom</div>
         </button>
       </div>
     `;
@@ -535,6 +545,7 @@ window.CatWidget = (function () {
       // the cat exactly as she currently is, mid-routine.
       after(5000, () => {
         suppressSleepUntil = Date.now() + randBetween(30000, 120000);
+        showGreeting();
         wakeUpThenWalk();
       });
     }
