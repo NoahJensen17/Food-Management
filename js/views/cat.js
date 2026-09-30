@@ -399,8 +399,9 @@ window.CatWidget = (function () {
           <!-- Black band that fully encircles the orange crown patch (drawn next):
              wraps above, to both sides, AND below it, so no white shows between the
              orange and the black anywhere around its border. A thin strip of white
-             is left only further down, right above the eyes. -->
-          <path class="cat-head-patch" d="M26 27 Q36 8 58 8 Q78 8 84 24 Q84 34 74 35 Q66 37 54 35 Q42 34 32 35 Q24 33 26 27Z" fill="#1c1917"/>
+             is left only further down, right above the eyes. Kept well inside the
+             head circle's boundary (cx=60 cy=46 r=30) on every point. -->
+          <path class="cat-head-patch" d="M36 26 Q40 17 50 17 Q56 17 64 17 Q74 17 78 26 Q78 33 70 34 Q62 36 54 34 Q46 33 38 34 Q34 32 36 26Z" fill="#1c1917"/>
 
           <!-- Caramel crown patch: angled across the top of the head, wider over the
              black-ear side, tapering off before the white-ear side. Sized to about a
@@ -409,8 +410,9 @@ window.CatWidget = (function () {
           <path class="cat-head-patch cat-head-patch--orange" d="M44 20 Q50 15 58 16 Q65 17 67 22 Q66 25 59 24 Q51 23 46 24 Q43 23 44 20Z" fill="#d17a2e"/>
 
           <!-- Black patch: covers the left ear base, wraps down through that eye and
-             onto the cheek, staying clear of the nose/muzzle and the other eye. -->
-          <path class="cat-head-patch" d="M30 26 Q24 34 26 44 Q24 50 29 57 Q36 64 44 60 Q50 54 47 46 Q49 36 42 30 Q36 26 30 26Z" fill="#1c1917"/>
+             onto the cheek, staying clear of the nose/muzzle and the other eye. Kept
+             well inside the head circle's boundary on every point. -->
+          <path class="cat-head-patch" d="M34 25 Q29 34 31 43 Q29 49 33 56 Q38 62 44 59 Q49 53 47 46 Q48 37 42 31 Q38 27 34 25Z" fill="#1c1917"/>
 
           <g class="cat-eyes">
             <ellipse cx="48" cy="47" rx="4.6" ry="5.8" fill="#a8c93c"/>
