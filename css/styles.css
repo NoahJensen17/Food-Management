@@ -685,8 +685,8 @@ main {
   transform: translateY(-50%);
 }
 
-/* Square rug with a woven-look border + diamond motif, so it reads as fabric laid on
-   the floor rather than another floor-colored blob. */
+/* Square rug with a woven-look double border, so it reads as fabric laid on the floor
+   rather than another floor-colored blob. */
 .cat-room__rug {
   position: absolute;
   left: 50%;
@@ -694,18 +694,10 @@ main {
   width: 30%;
   height: 16%;
   transform: translateX(-50%);
-  background: var(--orange-100);
-  border: 4px solid var(--orange-200);
+  background: #5b6b7c;
+  border: 4px solid #46525f;
   border-radius: 6px;
-  box-shadow: inset 0 0 0 3px var(--orange-100), inset 0 0 0 6px var(--orange-200);
-}
-
-.cat-room__rug::before {
-  content: "";
-  position: absolute;
-  inset: 22%;
-  border: 3px solid var(--orange-200);
-  transform: rotate(45deg);
+  box-shadow: inset 0 0 0 3px #5b6b7c, inset 0 0 0 6px #46525f;
 }
 
 .cat-sprite {
@@ -840,6 +832,28 @@ main {
   0% { transform: translateY(6px); }
   40% { transform: translateY(-2px) rotate(-4deg); }
   100% { transform: translateY(0); }
+}
+
+/* Turning around: a quick squash + settle pulse spanning the whole pivot (glance
+   toward viewer -> fully turned away) so the two swapped poses read as one continuous
+   body movement instead of a hard cut between static images. */
+.cat-sprite[data-state="turning"] .cat-body {
+  animation: cat-turn-squash 0.4s ease-in-out;
+}
+.cat-sprite[data-state="turning"] .cat-head-group {
+  animation: cat-turn-head 0.4s ease-in-out;
+}
+
+@keyframes cat-turn-squash {
+  0% { transform: scaleX(1) scaleY(1); }
+  50% { transform: scaleX(0.82) scaleY(1.08); }
+  100% { transform: scaleX(1) scaleY(1); }
+}
+
+@keyframes cat-turn-head {
+  0% { transform: translateX(0); }
+  50% { transform: translateX(-3px) scaleX(0.9); }
+  100% { transform: translateX(0); }
 }
 
 /* Startled/petted reaction: quick bounce + floating hearts */

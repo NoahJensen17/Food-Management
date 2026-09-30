@@ -86,7 +86,15 @@ window.CatWidget = (function () {
   // The pose (side/away/toward) is chosen from whichever axis dominates this particular
   // move, so a mostly-sideways step shows the side view, a mostly-upward step shows the
   // back of the cat walking away, etc. — instead of one sprite just mirroring in place.
-  function walkTo(targetX, targetY) {
+  //
+  // If this move stays in the side view but reverses horizontal direction from the
+  // previous walk, an instant scaleX flip would look like a flat image spinning in
+  // place. Instead, play a short three-beat pivot first — glance toward the viewer,
+  // then fully turn away, with a quick squash/settle pulse at the midpoint — before
+  // continuing in the side view facing the new direction. This is a sleight of hand
+  // (still swapped poses, not a true rotation), but the extra beats and the body pulse
+  // read as the cat's body turning rather than a flat image flipping in place.
+  function walkTo(targetX, targetY, skipTurnaround) {
     const { width, height } = roomSize();
     const dx = ((targetX - pos.x) / 100) * width;
     const dy = ((targetY - pos.y) / 100) * height;
@@ -94,11 +102,23 @@ window.CatWidget = (function () {
     const speed = 28; // px per second
     const duration = Math.max(0.6, distance / speed);
 
-    facingRight = targetX >= pos.x;
-    if (Math.abs(dy) > Math.abs(dx) * 1.3) {
-      setView(dy < 0 ? "away" : "toward");
-    } else {
+    const nextFacingRight = targetX >= pos.x;
+    const isSideMove = Math.abs(dy) <= Math.abs(dx) * 1.3;
+    const reversedDirection = isSideMove && view === "side" && nextFacingRight !== facingRight && distance > 4;
+
+    if (!skipTurnaround && reversedDirection) {
+      playTurnaround(() => {
+        facingRight = nextFacingRight;
+        walkTo(targetX, targetY, true);
+      });
+      return;
+    }
+
+    facingRight = nextFacingRight;
+    if (isSideMove) {
       setView("side");
+    } else {
+      setView(dy < 0 ? "away" : "toward");
     }
 
     setState("walking");
@@ -107,6 +127,23 @@ window.CatWidget = (function () {
     positionSprite();
 
     after(duration * 1000, onArrive);
+  }
+
+  function playTurnaround(onDone) {
+    setState("turning");
+    spriteEl.style.transitionDuration = "0s";
+
+    setView("toward");
+    positionSprite();
+
+    after(180, () => {
+      setView("away");
+      positionSprite();
+      after(220, () => {
+        setState("walking");
+        onDone();
+      });
+    });
   }
 
   // True once the cat has actually arrived at (approximately) the rug — makes sitting
@@ -172,7 +209,7 @@ window.CatWidget = (function () {
       wakeUpThenWalk();
       return;
     }
-    if (state === "startled") return;
+    if (state === "startled" || state === "turning") return;
 
     const prevState = state;
     clearTimers();
@@ -215,6 +252,7 @@ window.CatWidget = (function () {
         <ellipse class="cat-body" cx="60" cy="76" rx="34" ry="26" fill="#faf6ee"/>
         <path class="cat-body-patch" d="M32 68 Q46 58 58 68 Q54 82 36 84 Q26 78 32 68Z" fill="#2b2320"/>
         <path class="cat-body-patch cat-body-patch--orange" d="M76 64 Q94 68 90 86 Q74 92 68 78 Q70 68 76 64Z" fill="#e8792c"/>
+        <path class="cat-body-patch" d="M56 60 Q68 56 72 66 Q66 74 56 70Z" fill="#2b2320" opacity="0.85"/>
 
         <g class="cat-head-group">
           <!-- Ears (behind head circle) -->
@@ -222,6 +260,7 @@ window.CatWidget = (function () {
           <path d="M88 38 L96 14 L74 30Z" fill="#faf6ee"/>
           <path d="M33 33 L28 19 L42 29Z" fill="#f2b9c4"/>
           <path d="M87 33 L92 19 L78 29Z" fill="#f2b9c4"/>
+          <path d="M89 32 L94 20 L82 30Z" fill="#2b2320"/>
           <path class="cat-head-patch" d="M78 28 Q92 30 90 42 Q80 46 74 36Z" fill="#e8792c"/>
 
           <!-- Big round chubby head -->
@@ -259,11 +298,14 @@ window.CatWidget = (function () {
 
   // Rear view: used when walking "away" (deeper into the room, toward the horizon).
   // Shows the back of the head (ears only, no face), the body, and the tail trailing
-  // behind — no eyes/whiskers/face, which is what visually sells "facing away."
+  // behind — no eyes/whiskers/face, which is what visually sells "facing away." Bold,
+  // generous calico patches (both ears, shoulders, haunch, tail base) keep it readable
+  // as a calico even without the face visible.
   function catSvgAway() {
     return svgWrap(`
         <g class="cat-tail">
           <path d="M60 96 Q66 70 52 50" fill="none" stroke="#e8792c" stroke-width="12" stroke-linecap="round"/>
+          <path d="M60 90 Q64 74 55 58" fill="none" stroke="#2b2320" stroke-width="5" stroke-linecap="round" opacity="0.55"/>
         </g>
         <g class="cat-legs">
           <ellipse cx="46" cy="94" rx="8" ry="9" fill="#faf6ee"/>
@@ -271,15 +313,18 @@ window.CatWidget = (function () {
         </g>
 
         <ellipse class="cat-body" cx="60" cy="76" rx="30" ry="26" fill="#faf6ee"/>
-        <path class="cat-body-patch" d="M40 58 Q60 50 76 60 Q74 78 56 82 Q40 76 40 58Z" fill="#2b2320"/>
-        <path class="cat-body-patch cat-body-patch--orange" d="M62 58 Q80 56 82 72 Q72 84 60 76 Q58 66 62 58Z" fill="#e8792c"/>
+        <path class="cat-body-patch" d="M32 62 Q52 50 66 62 Q62 84 40 86 Q28 76 32 62Z" fill="#2b2320"/>
+        <path class="cat-body-patch cat-body-patch--orange" d="M60 56 Q82 54 86 74 Q76 90 58 80 Q54 66 60 56Z" fill="#e8792c"/>
+        <path class="cat-body-patch" d="M70 82 Q80 88 76 96 Q66 96 66 88Z" fill="#2b2320"/>
 
         <g class="cat-head-group">
           <path d="M36 40 L28 16 L50 32Z" fill="#faf6ee"/>
           <path d="M84 40 L92 16 L70 32Z" fill="#faf6ee"/>
-          <path class="cat-head-patch" d="M70 30 Q86 32 84 44 Q74 46 68 38Z" fill="#e8792c"/>
+          <path d="M37 34 L31 20 L46 31Z" fill="#2b2320"/>
+          <path d="M83 34 L89 20 L74 31Z" fill="#e8792c"/>
+          <path class="cat-head-patch" d="M70 30 Q88 32 86 46 Q72 48 66 36Z" fill="#e8792c"/>
           <circle class="cat-head" cx="60" cy="46" r="28" fill="#faf6ee"/>
-          <path class="cat-head-patch" d="M34 40 Q28 52 38 58 Q48 54 46 42 Q40 36 34 40Z" fill="#2b2320"/>
+          <path class="cat-head-patch" d="M32 38 Q24 52 36 62 Q50 58 48 42 Q40 34 32 38Z" fill="#2b2320"/>
           <path d="M46 66 Q60 72 74 66" fill="none" stroke="#e0d3c2" stroke-width="2" stroke-linecap="round"/>
         </g>
     `);
