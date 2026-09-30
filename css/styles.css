@@ -630,25 +630,26 @@ main {
   min-height: 160px;
   border-radius: var(--radius-md);
   overflow: hidden;
-  /* Wall (background) above the horizon line at 30%. */
-  background: linear-gradient(to bottom, #eaf4fb 0%, #eaf4fb 30%, transparent 30%);
-  background-color: #e3c9a8;
+  /* Wall (background) above the horizon line at 30%, light brown with an orange hue.
+     The floor below fills the rest with hardwood (no plain-color fallback showing
+     through anywhere on the floor). */
+  background: linear-gradient(to bottom, #f0dcc4 0%, #f0dcc4 30%, transparent 30%);
+  background-color: #ad7f4f;
 }
 
-/* Floor: a perspective trapezoid (narrow at the horizon, wide at the bottom) so the
-   room reads as a 3D space with a vanishing point instead of a flat color split.
-   Hardwood is drawn as long vertical planks (wide seams running toward the vanishing
-   point, so each strip reads as one board, not a tile grid) with a subtle wood-grain
-   streak inside each plank and sparse, irregularly-spaced end-seams — real strip
-   flooring staggers plank ends rather than lining them up in a grid. */
+/* Floor: fills the entire area below the horizon (no clip-path) with hardwood planks,
+   so there is no fallback-color gap in the corners outside a trapezoid shape. The
+   trapezoid "3D" read comes entirely from the sunlight cone drawn on top matching the
+   window's edges — see .cat-room__sunlight — rather than from clipping the wood itself.
+   Hardwood is drawn as long vertical planks (wide seams so each strip reads as one
+   board, not a tile grid) with a subtle wood-grain streak inside each plank and sparse,
+   irregularly-spaced end-seams — real strip flooring staggers plank ends. */
 .cat-room__floor {
   position: absolute;
-  left: 50%;
+  left: 0;
+  right: 0;
   top: 30%;
   bottom: 0;
-  width: 100%;
-  transform: translateX(-50%);
-  clip-path: polygon(28% 0%, 72% 0%, 100% 100%, 0% 100%);
   background-color: #b9895a;
   background-image:
     /* Plank seams (long boards, running toward the horizon) */
@@ -680,32 +681,37 @@ main {
   z-index: 1;
 }
 
-/* Sunlight: a soft trapezoid of light falling from the window onto the wood floor,
-   instead of a flat two-tone split. Anchored under the window's position/width and
-   widening toward the viewer, like a real light cone from an overhead-ish window. */
+/* Sunlight: a soft trapezoid of light falling from the window onto the wood floor. Its
+   top edge is anchored to the window's actual left/right edges (35%/65% of room width,
+   since .cat-room__window is 30% wide centered at 50%) so the light plausibly comes
+   from that window rather than an arbitrary cone; it widens toward the viewer at the
+   same rate on both sides for a realistic, symmetric light-throw angle. */
 .cat-room__sunlight {
   position: absolute;
-  left: 50%;
+  left: 0;
+  right: 0;
   top: 0;
-  width: 100%;
-  height: 100%;
-  transform: translateX(-50%);
-  clip-path: polygon(38% 0%, 62% 0%, 82% 100%, 18% 100%);
+  bottom: 0;
+  clip-path: polygon(35% 0%, 65% 0%, 93% 100%, 7% 100%);
   background: linear-gradient(180deg, rgba(255, 246, 214, 0.75), rgba(255, 246, 214, 0.28));
   mix-blend-mode: soft-light;
   pointer-events: none;
 }
 
+/* Extends above the room's top edge and gets clipped by .cat-room's overflow:hidden,
+   like a door/window taller than the available wall space — no top border or rounded
+   top corners, since that edge is meant to look cut off rather than framed. */
 .cat-room__window {
   position: absolute;
-  top: 8%;
+  top: -35%;
   left: 50%;
   transform: translateX(-50%);
   width: 30%;
-  height: 46%;
+  height: 89%;
   background: linear-gradient(to bottom, #cfe8f7, #eaf4fb);
   border: 4px solid #d8c3a5;
-  border-radius: 4px;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
 }
 
 .cat-room__window::before,
@@ -733,8 +739,8 @@ main {
   transform: translateY(-50%);
 }
 
-/* Square rug with a woven-look double border in dark slate blue-grey, and a white/blue
-   argyle diamond pattern filling the inner area so it clearly reads as fabric. */
+/* Square rug: the whole rug is a white/blue argyle diamond pattern (not just an inset
+   patch), with a thin dark border for definition against the floor. */
 .cat-room__rug {
   position: absolute;
   left: 50%;
@@ -742,17 +748,9 @@ main {
   width: 30%;
   height: 16%;
   transform: translateX(-50%);
-  background: #5b6b7c;
-  border: 4px solid #46525f;
+  border: 3px solid #2f4f70;
   border-radius: 6px;
-  box-shadow: inset 0 0 0 3px #5b6b7c, inset 0 0 0 6px #46525f;
   overflow: hidden;
-}
-
-.cat-room__rug::before {
-  content: "";
-  position: absolute;
-  inset: 9px;
   background-color: #3f6fa8;
   background-image:
     repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.9) 0, rgba(255, 255, 255, 0.9) 2px, transparent 2px, transparent 22%),

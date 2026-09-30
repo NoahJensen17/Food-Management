@@ -4,14 +4,15 @@
 window.CatWidget = (function () {
   const SPRITE_SIZE = 92; // px, width/height of the cat sprite's bounding box
 
-  // The floor is a trapezoid (see .cat-room__floor's clip-path: 28%/72% at the horizon
-  // widening to 0%/100% at the bottom) starting at 30% down the room. Floor Y range
-  // stays within that band; the X range at a given Y is interpolated to match the
-  // trapezoid's edges so the cat is never placed outside the visible floor shape.
+  // The cat's walkable area is a trapezoid (narrow near the horizon, wide at the
+  // bottom) for the perspective illusion, even though the floor itself is now painted
+  // edge-to-edge with hardwood (see .cat-room__floor) rather than clipped to match.
+  // Floor Y range stays within this band; the X range at a given Y is interpolated to
+  // match the trapezoid's edges so the cat is never placed outside the intended area.
   const FLOOR_TOP = 34; // % — a little below the 30% horizon so paws don't clip the baseboard
   const FLOOR_BOTTOM = 92; // % — leaves a little margin above the room's bottom edge
-  const HORIZON_LEFT = 30; // % — floor's left edge at the horizon (matches clip-path ~28% + margin)
-  const HORIZON_RIGHT = 70; // % — floor's right edge at the horizon
+  const HORIZON_LEFT = 30; // % — walkable area's left edge at the horizon
+  const HORIZON_RIGHT = 70; // % — walkable area's right edge at the horizon
   const RUG = { x: 50, y: 42 };
 
   let root = null;
