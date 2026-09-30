@@ -625,7 +625,9 @@ main {
 }
 
 /* Floor: a perspective trapezoid (narrow at the horizon, wide at the bottom) so the
-   room reads as a 3D space with a vanishing point instead of a flat color split. */
+   room reads as a 3D space with a vanishing point instead of a flat color split.
+   Hardwood planks are drawn with repeating gradients (seams running toward the
+   vanishing point, cross-grain seams between boards) rather than an image asset. */
 .cat-room__floor {
   position: absolute;
   left: 50%;
@@ -633,8 +635,12 @@ main {
   bottom: 0;
   width: 100%;
   transform: translateX(-50%);
-  background: #f0dcc2;
   clip-path: polygon(28% 0%, 72% 0%, 100% 100%, 0% 100%);
+  background-color: #cfa06c;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(45, 20, 5, 0.1) 0, rgba(45, 20, 5, 0.1) 2px, transparent 2px, transparent 14%),
+    repeating-linear-gradient(0deg, rgba(45, 20, 5, 0.07) 0, rgba(45, 20, 5, 0.07) 2px, transparent 2px, transparent 18%),
+    linear-gradient(180deg, #d9ae78, #c2925e);
 }
 
 .cat-room__floor::before {
@@ -646,6 +652,23 @@ main {
   right: 0;
   height: 3px;
   background: rgba(45, 20, 5, 0.12);
+  z-index: 1;
+}
+
+/* Sunlight: a soft trapezoid of light falling from the window onto the wood floor,
+   instead of a flat two-tone split. Anchored under the window's position/width and
+   widening toward the viewer, like a real light cone from an overhead-ish window. */
+.cat-room__sunlight {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  transform: translateX(-50%);
+  clip-path: polygon(38% 0%, 62% 0%, 82% 100%, 18% 100%);
+  background: linear-gradient(180deg, rgba(255, 246, 214, 0.75), rgba(255, 246, 214, 0.28));
+  mix-blend-mode: soft-light;
+  pointer-events: none;
 }
 
 .cat-room__window {
@@ -690,7 +713,7 @@ main {
 .cat-room__rug {
   position: absolute;
   left: 50%;
-  top: 38%;
+  top: 34%;
   width: 30%;
   height: 16%;
   transform: translateX(-50%);
@@ -711,6 +734,11 @@ main {
   transition-property: left, top, transform;
   transition-timing-function: linear;
   touch-action: manipulation;
+}
+
+.cat-sprite__pivot,
+.cat-sprite__pose {
+  display: block;
 }
 
 .cat-sprite__svg {
@@ -835,25 +863,18 @@ main {
 }
 
 /* Turning around: a quick squash + settle pulse spanning the whole pivot (glance
-   toward viewer -> fully turned away) so the two swapped poses read as one continuous
-   body movement instead of a hard cut between static images. */
-.cat-sprite[data-state="turning"] .cat-body {
+   toward viewer -> fully turned away). Applied to the persistent .cat-sprite__pivot
+   wrapper (never removed/re-inserted) rather than any shape inside the swappable SVG,
+   so the pulse plays once, continuously, across the pose swap instead of restarting
+   from scratch on freshly-inserted artwork each time the pose changes mid-animation. */
+.cat-sprite[data-state="turning"] .cat-sprite__pivot {
   animation: cat-turn-squash 0.4s ease-in-out;
-}
-.cat-sprite[data-state="turning"] .cat-head-group {
-  animation: cat-turn-head 0.4s ease-in-out;
 }
 
 @keyframes cat-turn-squash {
   0% { transform: scaleX(1) scaleY(1); }
-  50% { transform: scaleX(0.82) scaleY(1.08); }
+  50% { transform: scaleX(0.86) scaleY(1.06); }
   100% { transform: scaleX(1) scaleY(1); }
-}
-
-@keyframes cat-turn-head {
-  0% { transform: translateX(0); }
-  50% { transform: translateX(-3px) scaleX(0.9); }
-  100% { transform: translateX(0); }
 }
 
 /* Startled/petted reaction: quick bounce + floating hearts */

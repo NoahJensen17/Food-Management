@@ -12,7 +12,7 @@ window.CatWidget = (function () {
   const FLOOR_BOTTOM = 92; // % — leaves a little margin above the room's bottom edge
   const HORIZON_LEFT = 30; // % — floor's left edge at the horizon (matches clip-path ~28% + margin)
   const HORIZON_RIGHT = 70; // % — floor's right edge at the horizon
-  const RUG = { x: 50, y: 46 };
+  const RUG = { x: 50, y: 42 };
 
   let root = null;
   let spriteEl = null;
@@ -64,13 +64,14 @@ window.CatWidget = (function () {
   }
 
   // Swaps the sprite's drawn pose (side/away/toward) only when it actually changes, so
-  // mid-walk CSS animations on the current pose aren't restarted every frame.
+  // mid-walk CSS animations on the current pose aren't restarted every frame. Only the
+  // .cat-sprite__pose container's contents are replaced — the pivot wrapper and hearts/
+  // Zzz overlays are untouched, so any animation running on them (e.g. the turn pulse)
+  // keeps playing continuously across a pose swap instead of restarting on new markup.
   function setView(next) {
     if (view === next) return;
     view = next;
-    const svgHolder = spriteEl.querySelector(".cat-sprite__svg");
-    if (svgHolder) svgHolder.remove();
-    spriteEl.insertAdjacentHTML("afterbegin", catSvgFor(view));
+    spriteEl.querySelector(".cat-sprite__pose").innerHTML = catSvgFor(view);
   }
 
   function positionSprite() {
@@ -224,15 +225,14 @@ window.CatWidget = (function () {
     });
   }
 
+  // Returns only the swappable SVG artwork. Hearts/Zzz overlays are created once in
+  // render() and never touched by setView, so they can't accumulate duplicates across
+  // pose swaps the way they would if they were part of this re-inserted markup.
   function svgWrap(inner) {
     return `
       <svg class="cat-sprite__svg" viewBox="0 0 120 110" width="${SPRITE_SIZE}" height="${SPRITE_SIZE * 110 / 120}">
         ${inner}
       </svg>
-      <div class="cat-hearts" aria-hidden="true">
-        <span>♥</span><span>♥</span><span>♥</span>
-      </div>
-      <div class="cat-zzz" aria-hidden="true">Z z z</div>
     `;
   }
 
@@ -397,9 +397,16 @@ window.CatWidget = (function () {
       <div class="cat-room">
         <div class="cat-room__window"></div>
         <div class="cat-room__floor"></div>
+        <div class="cat-room__sunlight"></div>
         <div class="cat-room__rug"></div>
         <button type="button" class="cat-sprite" id="cat-sprite" aria-label="Pet the cat" data-state="${state}">
-          ${catSvgFor(view)}
+          <div class="cat-sprite__pivot">
+            <div class="cat-sprite__pose">${catSvgFor(view)}</div>
+          </div>
+          <div class="cat-hearts" aria-hidden="true">
+            <span>♥</span><span>♥</span><span>♥</span>
+          </div>
+          <div class="cat-zzz" aria-hidden="true">Z z z</div>
         </button>
       </div>
     `;
