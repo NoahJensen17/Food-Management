@@ -344,12 +344,14 @@ window.CatWidget = (function () {
           <path class="cat-head-patch" d="M74 26 Q90 28 88 42 Q76 44 72 32Z" fill="#d17a2e"/>
 
           <circle class="cat-head" cx="60" cy="46" r="30" fill="#faf6ee"/>
-          <!-- Black covers the left side of the face only (ear down through the eye
-             to the cheek) and stays below the crown, leaving the whole top of the
-             head (above the eyes/forehead) blank white. An orange "cap" patch then
-             sits on top of that blank white crown. -->
-          <path class="cat-head-patch" d="M32 22 Q24 30 26 42 Q24 48 28 56 Q34 64 42 62 Q50 56 48 42 Q48 32 54 28 Q48 34 40 30 Q34 26 32 22Z" fill="#1c1917"/>
-          <path class="cat-head-patch cat-head-patch--orange" d="M44 20 Q60 10 76 18 Q78 24 68 26 Q58 28 48 25 Q42 23 44 20Z" fill="#d17a2e"/>
+          <!-- Black covers the left side of the face (ear down through the eye to
+             the cheek) plus a separate band across the crown, leaving only a thin
+             strip of white directly above the eyes between the two. The orange
+             "cap" patch then sits on top of that black crown band, not touching
+             the white strip. -->
+          <path class="cat-head-patch" d="M32 22 Q22 30 26 42 Q24 48 28 56 Q34 64 42 62 Q50 56 48 42 Q48 30 58 26 Q50 34 40 34 Q32 32 32 22Z" fill="#1c1917"/>
+          <path class="cat-head-patch" d="M30 26 Q40 16 60 16 Q74 18 80 26 Q82 32 74 33 Q64 30 54 31 Q42 34 30 26Z" fill="#1c1917"/>
+          <path class="cat-head-patch cat-head-patch--orange" d="M44 19 Q60 10 76 17 Q78 23 68 25 Q58 27 48 24 Q42 22 44 19Z" fill="#d17a2e"/>
 
           <!-- Left cheek ellipse recolored to black so it blends with the face patch
                above instead of painting white over part of it (this cheek shading
