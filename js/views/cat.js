@@ -166,10 +166,20 @@ window.CatWidget = (function () {
   function onTap() {
     if (state === "sleeping" || state === "lying-down") {
       clearTimers();
-      wakeUpThenWalk();
+      setState("waking");
+      after(900, () => {
+        setState("sitting");
+        purrThenResume();
+      });
       return;
     }
-    if (state === "startled") return;
+    if (state === "startled" || state === "purring") return;
+
+    if (state === "sitting") {
+      clearTimers();
+      purrThenResume();
+      return;
+    }
 
     const prevState = state;
     clearTimers();
@@ -181,6 +191,16 @@ window.CatWidget = (function () {
       } else {
         scheduleNextWalk(200);
       }
+    });
+  }
+
+  // Sitting or (just-woken) sleeping cat reacts to a tap with a "Purr" text + a quick
+  // in-place vibration, then goes back to sitting for a while before wandering again.
+  function purrThenResume() {
+    setState("purring");
+    after(900, () => {
+      setState("sitting");
+      after(randBetween(1500, 3000), () => scheduleNextWalk(200));
     });
   }
 
@@ -303,6 +323,7 @@ window.CatWidget = (function () {
             <span>♥</span><span>♥</span><span>♥</span>
           </div>
           <div class="cat-zzz" aria-hidden="true">Z z z</div>
+          <div class="cat-purr" aria-hidden="true">Purr</div>
         </button>
       </div>
     `;

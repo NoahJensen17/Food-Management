@@ -23,7 +23,7 @@ window.ViewHome = (function () {
       </div>
 
       <div class="card" id="cat-card">
-        <div class="card-title">Whiskers</div>
+        <div class="card-title">Zuki</div>
         <div id="cat-widget"></div>
       </div>
     `;

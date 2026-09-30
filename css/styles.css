@@ -190,6 +190,13 @@ main {
   margin-bottom: 4px;
 }
 
+/* Home-specific spacing trims to fit the weather/verse/cat cards within a typical
+   phone viewport without scrolling. */
+#view-home .card {
+  margin-bottom: 12px;
+  padding: 14px 18px;
+}
+
 .home-sub {
   color: var(--ink-muted);
   margin-bottom: 20px;
@@ -616,7 +623,11 @@ main {
 .cat-room {
   position: relative;
   width: 100%;
-  height: 320px;
+  /* Responsive height: scales down on shorter viewports (small phones) instead of a
+     fixed px value that only fits full-size screens, while capping how tall it gets on
+     larger ones. */
+  height: min(210px, 27vh);
+  min-height: 160px;
   border-radius: var(--radius-md);
   overflow: hidden;
   /* Wall (background) above the horizon line at 30%. */
@@ -626,8 +637,10 @@ main {
 
 /* Floor: a perspective trapezoid (narrow at the horizon, wide at the bottom) so the
    room reads as a 3D space with a vanishing point instead of a flat color split.
-   Hardwood planks are drawn with repeating gradients (seams running toward the
-   vanishing point, cross-grain seams between boards) rather than an image asset. */
+   Hardwood is drawn as long vertical planks (wide seams running toward the vanishing
+   point, so each strip reads as one board, not a tile grid) with a subtle wood-grain
+   streak inside each plank and sparse, irregularly-spaced end-seams — real strip
+   flooring staggers plank ends rather than lining them up in a grid. */
 .cat-room__floor {
   position: absolute;
   left: 50%;
@@ -636,11 +649,23 @@ main {
   width: 100%;
   transform: translateX(-50%);
   clip-path: polygon(28% 0%, 72% 0%, 100% 100%, 0% 100%);
-  background-color: #cfa06c;
+  background-color: #b9895a;
   background-image:
-    repeating-linear-gradient(90deg, rgba(45, 20, 5, 0.1) 0, rgba(45, 20, 5, 0.1) 2px, transparent 2px, transparent 14%),
-    repeating-linear-gradient(0deg, rgba(45, 20, 5, 0.07) 0, rgba(45, 20, 5, 0.07) 2px, transparent 2px, transparent 18%),
-    linear-gradient(180deg, #d9ae78, #c2925e);
+    /* Plank seams (long boards, running toward the horizon) */
+    repeating-linear-gradient(90deg,
+      rgba(45, 20, 5, 0.16) 0, rgba(45, 20, 5, 0.16) 1.5px,
+      transparent 1.5px, transparent 9%),
+    /* Wood grain streaks inside each plank */
+    repeating-linear-gradient(90deg,
+      rgba(255, 240, 210, 0.06) 0%, transparent 1.5%,
+      rgba(80, 45, 15, 0.05) 3%, transparent 5%),
+    /* Sparse, staggered end-seams (irregular spacing/offset, unlike a tile grid) */
+    repeating-linear-gradient(0deg,
+      rgba(45, 20, 5, 0.1) 0, rgba(45, 20, 5, 0.1) 1.5px,
+      transparent 1.5px, transparent 46%),
+    linear-gradient(180deg, #cc9c66, #ad7f4f);
+  background-size: 100% 100%, 100% 100%, 18% 100%, 100% 100%;
+  background-position: 0 0, 0 0, 4% 0, 0 0;
 }
 
 .cat-room__floor::before {
@@ -708,8 +733,8 @@ main {
   transform: translateY(-50%);
 }
 
-/* Square rug with a woven-look double border, so it reads as fabric laid on the floor
-   rather than another floor-colored blob. */
+/* Square rug with a woven-look double border in dark slate blue-grey, and a white/blue
+   argyle diamond pattern filling the inner area so it clearly reads as fabric. */
 .cat-room__rug {
   position: absolute;
   left: 50%;
@@ -721,6 +746,19 @@ main {
   border: 4px solid #46525f;
   border-radius: 6px;
   box-shadow: inset 0 0 0 3px #5b6b7c, inset 0 0 0 6px #46525f;
+  overflow: hidden;
+}
+
+.cat-room__rug::before {
+  content: "";
+  position: absolute;
+  inset: 9px;
+  background-color: #3f6fa8;
+  background-image:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.9) 0, rgba(255, 255, 255, 0.9) 2px, transparent 2px, transparent 22%),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.9) 0, rgba(255, 255, 255, 0.9) 2px, transparent 2px, transparent 22%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.35) 0, rgba(255, 255, 255, 0.35) 1px, transparent 1px, transparent 11%),
+    repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.35) 0, rgba(255, 255, 255, 0.35) 1px, transparent 1px, transparent 11%);
 }
 
 .cat-sprite {
@@ -777,7 +815,8 @@ main {
   left: 62%;
   font-size: 13px;
   font-weight: 700;
-  color: var(--ink-muted);
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(45, 20, 5, 0.35);
   opacity: 0;
   letter-spacing: 1px;
   pointer-events: none;
@@ -860,6 +899,51 @@ main {
   0% { transform: translateY(6px); }
   40% { transform: translateY(-2px) rotate(-4deg); }
   100% { transform: translateY(0); }
+}
+
+.cat-purr {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(45, 20, 5, 0.35);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Petted while sitting/awake: "Purr" label + a quick in-place vibration. The vibration
+   is applied to the persistent .cat-sprite__pivot wrapper so it isn't affected by pose
+   swaps (there are none during this reaction anyway, but keeps the same safe pattern
+   used for the sit/lie/sleep poses). */
+.cat-sprite[data-state="purring"] .cat-sprite__pivot {
+  animation: cat-purr-vibrate 0.9s ease-in-out;
+}
+.cat-sprite[data-state="purring"] .cat-purr {
+  opacity: 1;
+  animation: cat-purr-text 0.9s ease-out;
+}
+
+@keyframes cat-purr-vibrate {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-1.5px, 0.5px); }
+  20% { transform: translate(1.5px, -0.5px); }
+  30% { transform: translate(-1.5px, -0.5px); }
+  40% { transform: translate(1.5px, 0.5px); }
+  50% { transform: translate(-1.5px, 0.5px); }
+  60% { transform: translate(1.5px, -0.5px); }
+  70% { transform: translate(-1px, 0); }
+  80% { transform: translate(1px, 0); }
+  90% { transform: translate(-0.5px, 0); }
+}
+
+@keyframes cat-purr-text {
+  0% { opacity: 0; transform: translateX(-50%) translateY(4px); }
+  20% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-6px); }
 }
 
 /* Startled/petted reaction: quick bounce + floating hearts */
