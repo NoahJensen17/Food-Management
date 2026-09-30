@@ -651,6 +651,23 @@ main:has(#view-home.active) {
      exactly with the card's edge now that it fills the card with no padding. */
   border-radius: var(--radius-lg);
   overflow: hidden;
+}
+
+/* Wraps every background element (window/door, floor, sunlight, rug) so they can be
+   visually "zoomed out" as a group without touching the cat sprite's own fixed pixel
+   size or its position math (which is relative to .cat-room, not this wrapper). Sized
+   larger than the room and scaled back down by the same factor so it still exactly
+   fills the frame — net effect: the background reads as a bigger room seen from
+   farther away, making the cat's fixed size proportionally bigger relative to it,
+   without actually changing the cat's own size. */
+.cat-room__scene {
+  position: absolute;
+  width: 143%;
+  height: 143%;
+  left: -21.5%;
+  top: -21.5%;
+  transform: scale(0.7);
+  transform-origin: center;
   /* Wall (background) above the horizon line at 30%, light brown with an orange hue.
      The floor below fills the rest with hardwood (no plain-color fallback showing
      through anywhere on the floor). */

@@ -376,12 +376,14 @@ window.CatWidget = (function () {
     root = container;
     root.innerHTML = `
       <div class="cat-room">
-        <div class="cat-room__window">
-          <div class="cat-room__door-handle"></div>
+        <div class="cat-room__scene">
+          <div class="cat-room__window">
+            <div class="cat-room__door-handle"></div>
+          </div>
+          <div class="cat-room__floor"></div>
+          <div class="cat-room__sunlight"></div>
+          <div class="cat-room__rug"></div>
         </div>
-        <div class="cat-room__floor"></div>
-        <div class="cat-room__sunlight"></div>
-        <div class="cat-room__rug"></div>
         <button type="button" class="cat-sprite" id="cat-sprite" aria-label="Pet the cat" data-state="${state}">
           <div class="cat-sprite__pivot">
             <div class="cat-sprite__pose">${catSvgFor(view)}</div>
