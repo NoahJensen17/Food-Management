@@ -338,30 +338,29 @@ window.CatWidget = (function () {
         </g>
 
         <g class="cat-head-group">
+          <!-- Rebuilt from a reference photo: an overall white/cream face, one ear
+             (viewer's left) black with a black patch wrapping down through that eye
+             and cheek, the other ear white, and a caramel crown patch angled across
+             the top of the head toward the black side. Eyes are amber/gold. -->
           <path d="M34 38 L26 14 L48 30Z" fill="#1c1917"/>
           <path d="M86 38 L94 14 L72 30Z" fill="#faf6ee"/>
           <path d="M85 33 L90 19 L76 29Z" fill="#f2b9c4"/>
-          <path class="cat-head-patch" d="M74 26 Q90 28 88 42 Q76 44 72 32Z" fill="#d17a2e"/>
 
           <circle class="cat-head" cx="60" cy="46" r="30" fill="#faf6ee"/>
-          <!-- Black covers the left side of the face (ear down through the eye to
-             the cheek) plus a separate band across the crown, leaving only a thin
-             strip of white directly above the eyes between the two. The orange
-             "cap" patch then sits on top of that black crown band, not touching
-             the white strip. -->
-          <path class="cat-head-patch" d="M32 22 Q22 30 26 42 Q24 48 28 56 Q34 64 42 62 Q50 56 48 42 Q48 30 58 26 Q50 34 40 34 Q32 32 32 22Z" fill="#1c1917"/>
-          <path class="cat-head-patch" d="M30 26 Q40 16 60 16 Q74 18 80 26 Q82 32 74 33 Q64 30 54 31 Q42 34 30 26Z" fill="#1c1917"/>
-          <path class="cat-head-patch cat-head-patch--orange" d="M44 19 Q60 10 76 17 Q78 23 68 25 Q58 27 48 24 Q42 22 44 19Z" fill="#d17a2e"/>
 
-          <!-- Left cheek ellipse recolored to black so it blends with the face patch
-               above instead of painting white over part of it (this cheek shading
-               is drawn after the patches in source order). -->
-          <ellipse cx="40" cy="56" rx="10" ry="8" fill="#1c1917"/>
-          <ellipse cx="80" cy="56" rx="10" ry="8" fill="#faf6ee"/>
+          <!-- Caramel crown patch: angled across the top of the head, wider over the
+             black-ear side, tapering off before the white-ear side. -->
+          <path class="cat-head-patch cat-head-patch--orange" d="M32 24 Q40 14 56 15 Q70 15 76 24 Q76 30 66 29 Q52 27 42 30 Q32 31 32 24Z" fill="#d17a2e"/>
+
+          <!-- Black patch: covers the left ear base, wraps down through that eye and
+             onto the cheek, staying clear of the nose/muzzle and the other eye. -->
+          <path class="cat-head-patch" d="M30 26 Q24 34 26 44 Q24 50 29 57 Q36 64 44 60 Q50 54 47 46 Q49 36 42 30 Q36 26 30 26Z" fill="#1c1917"/>
 
           <g class="cat-eyes">
-            <ellipse cx="48" cy="47" rx="4.4" ry="5.6" fill="#2a1d16"/>
-            <ellipse cx="72" cy="47" rx="4.4" ry="5.6" fill="#2a1d16"/>
+            <ellipse cx="48" cy="47" rx="4.6" ry="5.8" fill="#c98a1e"/>
+            <ellipse cx="72" cy="47" rx="4.6" ry="5.8" fill="#c98a1e"/>
+            <ellipse cx="48" cy="47" rx="2" ry="4.4" fill="#2a1d16"/>
+            <ellipse cx="72" cy="47" rx="2" ry="4.4" fill="#2a1d16"/>
             <circle cx="49.3" cy="45.2" r="1.2" fill="#fff"/>
             <circle cx="73.3" cy="45.2" r="1.2" fill="#fff"/>
           </g>
@@ -371,10 +370,6 @@ window.CatWidget = (function () {
           </g>
 
           <path d="M57 53 L63 53 L60 58Z" fill="#f2b9c4"/>
-          <!-- Black patch on the right side of the nose/muzzle, per the reference —
-             sized to clearly read as a marking rather than blend into the small
-             nose/mouth details right next to it, kept clear of the right eye above. -->
-          <path d="M62 52 Q71 51 70 58 Q67 63 60 61 Q58 56 62 52Z" fill="#1c1917"/>
           <path class="cat-mouth" d="M60 58 Q55 62 50 59 M60 58 Q65 62 70 59" fill="none" stroke="#2a1d16" stroke-width="1.6" stroke-linecap="round"/>
 
           <g stroke="#c9bfb2" stroke-width="1.2" stroke-linecap="round">
