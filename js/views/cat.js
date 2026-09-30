@@ -89,7 +89,10 @@ window.CatWidget = (function () {
   // There is no mirroring and no side view at all, so there is nothing that can ever
   // visually "flip" — sideways and diagonal moves just slide the front/back pose to its
   // new spot, the same way up/down moves already did.
-  function walkTo(targetX, targetY) {
+  // sleepOnArrival: when true, arriving skips the normal onArrive random roll and goes
+  // straight into the lie-down-then-sleep sequence at the destination just walked to —
+  // used when a sleep decision (and target spot) has already been made.
+  function walkTo(targetX, targetY, sleepOnArrival) {
     const { width, height } = roomSize();
     const dx = ((targetX - pos.x) / 100) * width;
     const dy = ((targetY - pos.y) / 100) * height;
@@ -104,7 +107,7 @@ window.CatWidget = (function () {
     pos = { x: targetX, y: targetY };
     positionSprite();
 
-    after(duration * 1000, onArrive);
+    after(duration * 1000, sleepOnArrival ? startLyingDown : onArrive);
   }
 
   // True once the cat has actually arrived at (approximately) the rug — makes sitting
@@ -114,24 +117,31 @@ window.CatWidget = (function () {
     return Math.abs(pos.x - spot.x) < tolerance && Math.abs(pos.y - spot.y) < tolerance;
   }
 
+  // Sitting/roaming pauses last 30s-1min; sleeping lasts much longer (30s-5min), per
+  // the intended "living in the background" feel rather than a quick animation loop.
+  const SIT_MIN_MS = 30000;
+  const SIT_MAX_MS = 60000;
+  const SLEEP_MIN_MS = 30000;
+  const SLEEP_MAX_MS = 300000;
+
   function onArrive() {
     const onRug = isNear(RUG, 12);
     const roll = Math.random();
 
     if (onRug) {
-      if (roll < 0.35) lieDownThenSleep();
+      if (roll < 0.35) decideSleepSpot(true);
       else if (roll < 0.7) {
         setState("sitting");
-        after(randBetween(2500, 5000), () => scheduleNextWalk(200));
+        after(randBetween(SIT_MIN_MS, SIT_MAX_MS), () => scheduleNextWalk(200));
       } else scheduleNextWalk(randBetween(400, 1500));
       return;
     }
 
     if (roll < 0.12) {
-      lieDownThenSleep();
+      decideSleepSpot(false);
     } else if (roll < 0.3) {
       setState("sitting");
-      after(randBetween(2000, 4000), () => scheduleNextWalk(200));
+      after(randBetween(SIT_MIN_MS, SIT_MAX_MS), () => scheduleNextWalk(200));
     } else if (roll < 0.65) {
       scheduleNextWalk(randBetween(400, 1500));
     } else {
@@ -139,11 +149,29 @@ window.CatWidget = (function () {
     }
   }
 
-  function lieDownThenSleep() {
+  // Sleeping happens on the rug 80% of the time and at a random other floor spot the
+  // other 20% — decided once here, then walked to (if not already there) exactly once,
+  // rather than re-rolling on arrival (which could otherwise send the cat back and
+  // forth if the second roll disagreed with the first).
+  function decideSleepSpot(alreadyOnRug) {
+    const sleepOnRug = Math.random() < 0.8;
+
+    if (sleepOnRug && alreadyOnRug) {
+      startLyingDown();
+    } else if (sleepOnRug) {
+      after(200, () => walkTo(RUG.x, RUG.y, true));
+    } else {
+      const targetY = randBetween(FLOOR_TOP, FLOOR_BOTTOM);
+      const { left, right } = floorXRange(targetY);
+      after(200, () => walkTo(randBetween(left, right), targetY, true));
+    }
+  }
+
+  function startLyingDown() {
     setState("lying-down");
     after(1800, () => {
       setState("sleeping");
-      after(randBetween(6000, 12000), () => {
+      after(randBetween(SLEEP_MIN_MS, SLEEP_MAX_MS), () => {
         if (state === "sleeping") wakeUpThenWalk();
       });
     });
@@ -227,15 +255,16 @@ window.CatWidget = (function () {
           <path d="M60 96 Q66 70 52 50" fill="none" stroke="#e8792c" stroke-width="12" stroke-linecap="round"/>
           <path d="M60 90 Q64 74 55 58" fill="none" stroke="#2b2320" stroke-width="5" stroke-linecap="round" opacity="0.55"/>
         </g>
-        <g class="cat-legs">
-          <ellipse cx="46" cy="94" rx="8" ry="9" fill="#faf6ee"/>
-          <ellipse cx="74" cy="94" rx="8" ry="9" fill="#faf6ee"/>
-        </g>
 
         <ellipse class="cat-body" cx="60" cy="76" rx="30" ry="26" fill="#faf6ee"/>
         <path class="cat-body-patch" d="M32 62 Q52 50 66 62 Q62 84 40 86 Q28 76 32 62Z" fill="#2b2320"/>
         <path class="cat-body-patch cat-body-patch--orange" d="M60 56 Q82 54 86 74 Q76 90 58 80 Q54 66 60 56Z" fill="#e8792c"/>
         <path class="cat-body-patch" d="M70 82 Q80 88 76 96 Q66 96 66 88Z" fill="#2b2320"/>
+
+        <g class="cat-legs">
+          <ellipse class="cat-leg cat-leg--left" cx="44" cy="100" rx="8" ry="10" fill="#faf6ee" stroke="#e4d9c8" stroke-width="1.5"/>
+          <ellipse class="cat-leg cat-leg--right" cx="76" cy="100" rx="8" ry="10" fill="#faf6ee" stroke="#e4d9c8" stroke-width="1.5"/>
+        </g>
 
         <g class="cat-head-group">
           <path d="M36 40 L28 16 L50 32Z" fill="#faf6ee"/>
@@ -257,14 +286,15 @@ window.CatWidget = (function () {
         <g class="cat-tail">
           <path d="M92 88 Q104 68 92 48" fill="none" stroke="#e8792c" stroke-width="12" stroke-linecap="round"/>
         </g>
-        <g class="cat-legs">
-          <ellipse cx="46" cy="94" rx="8" ry="9" fill="#faf6ee"/>
-          <ellipse cx="74" cy="94" rx="8" ry="9" fill="#faf6ee"/>
-        </g>
 
         <ellipse class="cat-body" cx="60" cy="76" rx="32" ry="26" fill="#faf6ee"/>
         <path class="cat-body-patch" d="M34 62 Q48 54 58 64 Q52 78 36 80 Q28 72 34 62Z" fill="#2b2320"/>
         <path class="cat-body-patch cat-body-patch--orange" d="M70 60 Q86 62 84 78 Q70 84 64 72 Q64 64 70 60Z" fill="#e8792c"/>
+
+        <g class="cat-legs">
+          <ellipse class="cat-leg cat-leg--left" cx="44" cy="100" rx="8" ry="10" fill="#faf6ee" stroke="#e4d9c8" stroke-width="1.5"/>
+          <ellipse class="cat-leg cat-leg--right" cx="76" cy="100" rx="8" ry="10" fill="#faf6ee" stroke="#e4d9c8" stroke-width="1.5"/>
+        </g>
 
         <g class="cat-head-group">
           <path d="M34 38 L26 14 L48 30Z" fill="#faf6ee"/>
@@ -307,9 +337,16 @@ window.CatWidget = (function () {
     return v === "away" ? catSvgAway() : catSvgToward();
   }
 
+  // True once the cat has been initialized for this page load. The Home screen's
+  // container div gets destroyed and recreated every time you navigate back to it
+  // (innerHTML replacement in home.js), but the cat's own state/timers live in this
+  // module's closure and keep running the whole time regardless — so re-visiting Home
+  // just needs to rebuild the DOM to reflect whatever the cat is currently doing,
+  // rather than resetting her back to sitting-on-the-rug like a fresh app load would.
+  let initialized = false;
+
   function render(container) {
     root = container;
-    view = "toward";
     root.innerHTML = `
       <div class="cat-room">
         <div class="cat-room__window">
@@ -333,16 +370,28 @@ window.CatWidget = (function () {
     spriteEl = root.querySelector("#cat-sprite");
     spriteEl.addEventListener("click", onTap);
 
+    // Snap to the current position/pose instantly (no transition) — this is a DOM
+    // rebuild reflecting existing state, not a walk in progress.
+    spriteEl.style.transitionDuration = "0s";
     positionSprite();
-    setState("sitting");
-    after(randBetween(2000, 4000), () => scheduleNextWalk(200));
+
+    if (!initialized) {
+      initialized = true;
+      setState("sitting");
+      after(randBetween(2000, 4000), () => scheduleNextWalk(200));
+    }
   }
 
+  // Only unhooks this container's DOM listener; does NOT clear timers or reset state,
+  // so the cat keeps "living" (walking/sitting/sleeping on her own schedule) while the
+  // user is on another tab. If a timer fires while the Home screen is elsewhere,
+  // spriteEl/root are detached but still-valid DOM nodes — style writes on them are
+  // harmless no-ops (nothing visible), and roomSize()'s getBoundingClientRect() just
+  // returns zeros, which walkTo() already floors to a minimum 0.6s duration rather than
+  // dividing by zero. The next render() rebuilds the DOM from the current state/pos, so
+  // nothing is lost — the cat just "teleports" the DOM to wherever she already was.
   function destroy() {
-    clearTimers();
     if (spriteEl) spriteEl.removeEventListener("click", onTap);
-    root = null;
-    spriteEl = null;
   }
 
   return { render, destroy };

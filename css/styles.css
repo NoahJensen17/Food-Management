@@ -181,6 +181,15 @@ main {
   margin: 0 0 10px;
 }
 
+/* No padding/border/background — the room graphic itself fills the full card area
+   edge-to-edge, unlike the bordered white-background weather/verse cards. */
+.card--flush {
+  padding: 0;
+  border: none;
+  background: transparent;
+  overflow: hidden;
+}
+
 /* ---------- Home ---------- */
 
 .home-greeting {
@@ -195,6 +204,10 @@ main {
 #view-home .card {
   margin-bottom: 12px;
   padding: 14px 18px;
+}
+
+#view-home .card--flush {
+  padding: 0;
 }
 
 .home-sub {
@@ -626,7 +639,9 @@ main {
   /* Prioritizes giving the cat a spacious room over avoiding a scrollbar; the Home
      screen may need a small scroll on shorter phones as a result. */
   height: 320px;
-  border-radius: var(--radius-md);
+  /* Matches the containing .card--flush's own radius so the room's corners align
+     exactly with the card's edge now that it fills the card with no padding. */
+  border-radius: var(--radius-lg);
   overflow: hidden;
   /* Wall (background) above the horizon line at 30%, light brown with an orange hue.
      The floor below fills the rest with hardwood (no plain-color fallback showing
@@ -740,11 +755,12 @@ main {
 }
 
 .cat-room__door-handle {
-  /* Vertical wooden bar handle, mounted on the inner edge of the sliding (right)
-     panel. A pseudo-element's ::after paints after real child elements in the same
-     stacking context, so .cat-room__window::after (the right glass panel) would
-     otherwise paint over this real child div — z-index (with position already set)
-     lifts it above that panel.
+  /* Vertical wooden bar handle, mounted on the outer edge of the sliding (right)
+     panel (the edge you'd grab to pull it shut against the frame), not the inner edge
+     next to the fixed panel. A pseudo-element's ::after paints after real child
+     elements in the same stacking context, so .cat-room__window::after (the right
+     glass panel) would otherwise paint over this real child div — z-index (with
+     position already set) lifts it above that panel.
      The door (.cat-room__window) is 89% tall starting at -35% of the room, so the
      room's visible top falls at (0 - -35) / 89 = ~39% down the door, meaning only the
      door's lower ~61% is ever visible. A real handle sits around the door's true
@@ -756,7 +772,7 @@ main {
   z-index: 1;
   top: 44%;
   height: 8.7%;
-  left: calc(50% + 8px);
+  right: 8px;
   width: 5px;
   background: #6b4e30;
   border-radius: 3px;
@@ -808,12 +824,13 @@ main {
 
 /* ---- Pose control: each part is a <g>/<path> inside the SVG, posed per data-state ---- */
 
-.cat-legs, .cat-tail, .cat-body, .cat-head-group {
+.cat-legs, .cat-leg, .cat-tail, .cat-body, .cat-head-group {
   transform-box: fill-box;
   transform-origin: center;
 }
 
 .cat-legs, .cat-tail { transition: transform 0.3s ease; }
+.cat-leg { transition: transform 0.15s ease; }
 .cat-eyes { opacity: 1; transition: opacity 0.2s ease; }
 .cat-eyes-closed { opacity: 0; transition: opacity 0.2s ease; }
 .cat-body, .cat-head-group, .cat-body-patch, .cat-body-patch--orange { transition: transform 0.3s ease; }
@@ -844,17 +861,27 @@ main {
   pointer-events: none;
 }
 
-/* Walking: subtle leg/tail sway via a short looping animation */
-.cat-sprite[data-state="walking"] .cat-legs {
-  animation: cat-walk-legs 0.5s ease-in-out infinite;
+/* Walking: legs alternate out of phase with a bigger lift + a slight forward/back
+   shift, so the motion reads as actual stepping rather than the whole body bobbing
+   uniformly (which was barely visible at phone size). Tail sway kept as before. */
+.cat-sprite[data-state="walking"] .cat-leg--left {
+  animation: cat-walk-leg-a 0.5s ease-in-out infinite;
+}
+.cat-sprite[data-state="walking"] .cat-leg--right {
+  animation: cat-walk-leg-b 0.5s ease-in-out infinite;
 }
 .cat-sprite[data-state="walking"] .cat-tail {
   animation: cat-walk-tail 0.6s ease-in-out infinite;
 }
 
-@keyframes cat-walk-legs {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-2px); }
+@keyframes cat-walk-leg-a {
+  0%, 100% { transform: translate(-1.5px, -4px); }
+  50% { transform: translate(1.5px, 0); }
+}
+
+@keyframes cat-walk-leg-b {
+  0%, 100% { transform: translate(1.5px, 0); }
+  50% { transform: translate(-1.5px, -4px); }
 }
 
 @keyframes cat-walk-tail {
