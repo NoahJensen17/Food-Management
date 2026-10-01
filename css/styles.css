@@ -163,10 +163,12 @@ main {
 
 /* Home's last element (the cat room) has nothing below it that needs protecting from
    the sticky bottom nav, unlike the scrollable lists in other views — so the usual
-   nav-clearance padding is just unused buffer there. Reduced to a small fixed gap
-   instead, specifically while Home is the active view. */
+   nav-clearance padding is just unused buffer there. Zeroed out specifically while
+   Home is the active view; the 10px gap above the nav is instead controlled by the
+   cat card itself (#view-home .card--flush's margin-bottom) so it stays exact
+   regardless of this shared main padding. */
 main:has(#view-home.active) {
-  padding-bottom: 12px;
+  padding-bottom: 0;
 }
 
 .view {
@@ -255,10 +257,36 @@ main:has(#view-home.active) {
   padding: 14px 18px;
 }
 
+/* The cat card is the last thing on Home and stretches to fill whatever vertical
+   space is left after the greeting/weather/verse cards above it, so the room reaches
+   the bottom of the screen (with a small gap before the nav) on any phone height
+   instead of leaving dead space below a fixed-height room on taller screens. */
+#view-home {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
 #view-home .card--flush {
   padding: 0;
   /* The cat card is the last thing on Home — no trailing margin below it. */
   margin-bottom: 0;
+  flex: 1;
+  min-height: 0;
+  /* Small gap before the bottom nav, matching the "+10px padding" request — the room
+     itself fills the card, so this reads as space below the room. */
+  margin-bottom: 10px;
+}
+
+#view-home .card--flush,
+#cat-widget {
+  display: flex;
+  flex-direction: column;
+}
+
+#cat-widget {
+  flex: 1;
+  min-height: 0;
 }
 
 .home-sub {
@@ -799,7 +827,12 @@ main:has(.view.active .toolbar) {
 .cat-room {
   position: relative;
   width: 100%;
-  height: 400px;
+  /* Fills whatever height #cat-widget ends up with (itself stretched by #view-home's
+     flex layout to use the space left after the cards above it), rather than a fixed
+     height — so the room reaches the bottom of the screen on any phone height. A
+     min-height keeps it from collapsing too small if very little space is left. */
+  flex: 1;
+  min-height: 280px;
   /* Matches the containing .card--flush's own radius so the room's corners align
      exactly with the card's edge now that it fills the card with no padding. */
   border-radius: var(--radius-lg);
