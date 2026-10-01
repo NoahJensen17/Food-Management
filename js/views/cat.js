@@ -258,10 +258,30 @@ window.CatWidget = (function () {
     } else if (sleepOnRug) {
       after(200, () => walkTo(RUG.x, RUG.y, startLyingDown));
     } else {
+      const spot = randomOffRugSpot();
+      after(200, () => walkTo(spot.x, spot.y, startLyingDown));
+    }
+  }
+
+  // Picks a random floor spot that's guaranteed to be outside the rug's own isNear()
+  // tolerance (12 units on each axis) — a plain randBetween() over the whole floor can
+  // land inside that zone by chance (the rug sits well within the floor's X/Y range),
+  // which would make an "off-rug" destination actually register as on-rug on arrival.
+  // Re-rolls until the candidate itself lands clear of the rug.
+  function randomOffRugSpot() {
+    for (let attempt = 0; attempt < 20; attempt++) {
       const targetY = randBetween(FLOOR_TOP, FLOOR_BOTTOM);
       const { left, right } = floorXRange(targetY);
-      after(200, () => walkTo(randBetween(left, right), targetY, startLyingDown));
+      const targetX = randBetween(left, right);
+      const nearRug = Math.abs(targetX - RUG.x) < 12 && Math.abs(targetY - RUG.y) < 12;
+      if (!nearRug) return { x: targetX, y: targetY };
     }
+    // Exceedingly unlikely fallback after 20 misses: push the last candidate's X out
+    // past the rug's tolerance on whichever side is closer, rather than looping forever.
+    const targetY = randBetween(FLOOR_TOP, FLOOR_BOTTOM);
+    const { left, right } = floorXRange(targetY);
+    const targetX = RUG.x < (left + right) / 2 ? right : left;
+    return { x: targetX, y: targetY };
   }
 
   // Sitting location is rolled first (30% on the rug, 70% elsewhere on the floor) and
@@ -281,9 +301,8 @@ window.CatWidget = (function () {
         after(randBetween(SIT_MIN_MS, SIT_MAX_MS), () => scheduleNextWalk(200));
       }));
     } else {
-      const targetY = randBetween(FLOOR_TOP, FLOOR_BOTTOM);
-      const { left, right } = floorXRange(targetY);
-      after(200, () => walkTo(randBetween(left, right), targetY, () => {
+      const spot = randomOffRugSpot();
+      after(200, () => walkTo(spot.x, spot.y, () => {
         sitDown(false);
         after(randBetween(SIT_MIN_MS, SIT_MAX_MS), () => scheduleNextWalk(200));
       }));
