@@ -222,7 +222,7 @@ main:has(#view-home.active) {
 /* ---------- Home ---------- */
 
 .home-greeting {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--orange-600);
   margin-bottom: 4px;
