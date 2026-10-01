@@ -1302,37 +1302,57 @@ main:has(.view.active .toolbar) {
    swaps (there are none during this reaction anyway, but keeps the same safe pattern
    used for the sit/lie/sleep poses). */
 .cat-sprite[data-state="purring"] .cat-sprite__pivot {
-  animation: cat-purr-vibrate 2s ease-in-out;
+  animation: cat-purr-vibrate 3s ease-in-out;
 }
 .cat-sprite[data-state="purring"] .cat-purr {
   opacity: 1;
-  animation: cat-purr-text 2s ease-out;
+  animation: cat-purr-text 3s ease-out;
 }
 
-/* Shake amplitude ramps up to a peak at the midpoint and back down, matching the
-   crescendo/decrescendo shape of the real device vibration pattern instead of a flat
-   back-and-forth jitter the whole time. */
+/* Three stronger bumps (at 0%, ~33%, ~67% of the 3s duration) matching the real
+   device vibration's three strong pulses a second apart, with a faint tremor filling
+   the gaps between them instead of going still — mirrors the haptic pattern's own
+   "strong pulse, weak rumble, strong pulse" rhythm. */
 @keyframes cat-purr-vibrate {
   0%, 100% { transform: translate(0, 0); }
-  7% { transform: translate(-0.5px, 0.2px); }
-  14% { transform: translate(0.5px, -0.2px); }
-  21% { transform: translate(-0.8px, -0.3px); }
-  28% { transform: translate(0.8px, 0.3px); }
-  35% { transform: translate(-1.2px, 0.4px); }
-  42% { transform: translate(1.2px, -0.4px); }
-  50% { transform: translate(-1.5px, 0.5px); }
-  58% { transform: translate(1.5px, -0.5px); }
-  65% { transform: translate(-1.2px, 0.4px); }
-  72% { transform: translate(1.2px, -0.4px); }
-  79% { transform: translate(-0.8px, 0.3px); }
-  86% { transform: translate(0.8px, -0.3px); }
-  93% { transform: translate(-0.4px, 0.15px); }
+  2% { transform: translate(-1.5px, 0.5px); }
+  4% { transform: translate(1.5px, -0.5px); }
+  6% { transform: translate(-1.3px, 0.4px); }
+  8% { transform: translate(1.3px, -0.4px); }
+  11% { transform: translate(-0.3px, 0.1px); }
+  14% { transform: translate(0.3px, -0.1px); }
+  17% { transform: translate(-0.3px, 0.1px); }
+  20% { transform: translate(0.3px, -0.1px); }
+  23% { transform: translate(-0.3px, 0.1px); }
+  26% { transform: translate(0.3px, -0.1px); }
+  29% { transform: translate(-0.3px, 0.1px); }
+  33.3% { transform: translate(-1.5px, 0.5px); }
+  35.3% { transform: translate(1.5px, -0.5px); }
+  37.3% { transform: translate(-1.3px, 0.4px); }
+  39.3% { transform: translate(1.3px, -0.4px); }
+  44% { transform: translate(-0.3px, 0.1px); }
+  47% { transform: translate(0.3px, -0.1px); }
+  50% { transform: translate(-0.3px, 0.1px); }
+  53% { transform: translate(0.3px, -0.1px); }
+  56% { transform: translate(-0.3px, 0.1px); }
+  59% { transform: translate(0.3px, -0.1px); }
+  62% { transform: translate(-0.3px, 0.1px); }
+  66.7% { transform: translate(-1.5px, 0.5px); }
+  68.7% { transform: translate(1.5px, -0.5px); }
+  70.7% { transform: translate(-1.3px, 0.4px); }
+  72.7% { transform: translate(1.3px, -0.4px); }
+  76% { transform: translate(-0.3px, 0.1px); }
+  80% { transform: translate(0.3px, -0.1px); }
+  84% { transform: translate(-0.3px, 0.1px); }
+  88% { transform: translate(0.3px, -0.1px); }
+  92% { transform: translate(-0.2px, 0.08px); }
+  96% { transform: translate(0.2px, -0.08px); }
 }
 
 @keyframes cat-purr-text {
   0% { opacity: 0; transform: translateX(-50%) translateY(4px); }
-  20% { opacity: 1; transform: translateX(-50%) translateY(0); }
-  80% { opacity: 1; }
+  10% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  90% { opacity: 1; }
   100% { opacity: 0; transform: translateX(-50%) translateY(-6px); }
 }
 

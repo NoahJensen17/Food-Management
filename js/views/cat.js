@@ -396,29 +396,50 @@ window.CatWidget = (function () {
   // navigator.vibrate() once called from inside a setTimeout callback, since by then
   // it's no longer considered part of the original user gesture. Every call site
   // below calls this directly from onTap, never from a delayed callback.
-  // A real purr isn't one flat buzz or a jolty on/off alternation — it swells and
-  // fades smoothly. The Vibration API can't vary amplitude directly, only on/off
-  // timing, so this approximates a crescendo/decrescendo by varying the *duty cycle*:
-  // pulses start short with long gaps between them (feels faint), get longer with
-  // shorter gaps toward the middle (denser pulsing reads as more intense), then ease
-  // back down the same way — a smooth rise and fall rather than back-and-forth jolts.
-  // PURR_DISPLAY_MS (used below in purrThenResume) is kept in sync with this so the
-  // "Purr" text stays on screen for exactly as long as the device is vibrating.
-  function buildPurrVibrationPattern(totalMs) {
-    const steps = 14;
-    const pattern = [];
-    for (let i = 0; i < steps; i++) {
-      const t = i / (steps - 1);
-      const intensity = t < 0.5 ? t * 2 : (1 - t) * 2; // triangular envelope: 0 -> 1 -> 0
-      pattern.push(20 + intensity * 45, 55 - intensity * 40); // vibrate, pause
+  // A real cat's purr comes in slow, distinct rolling waves rather than one
+  // continuous buzz — three strong pulses, a second apart, reads like a cat settling
+  // into a dragged-out purr instead of a fast rattling vibration. Between those three
+  // bursts the device still buzzes faintly rather than going fully silent, via a
+  // string of very short, widely-spaced micro-pulses standing in for a weak
+  // "amplitude" the Vibration API has no direct control over. PURR_DISPLAY_MS (used
+  // below in purrThenResume) is kept in sync with this so the "Purr" text stays on
+  // screen for exactly as long as the pattern takes to play out.
+  // navigator.vibrate()'s pattern array implicitly starts "on" and alternates from
+  // there, so every element spliced into the overall pattern must land on the right
+  // on/off parity. This fills a gap that follows a strong "on" pulse, so it must
+  // START with an "off" pause and alternate blip(on)/pause(off) from there, ending on
+  // an "off" too — so the strong pulse immediately after it still lands correctly on
+  // an "on" slot.
+  function buildIdleRumble(gapMs) {
+    const blipMs = 15;
+    const pauseMs = 110;
+    const pulse = [];
+    let remaining = gapMs;
+    // Initial pause right after the strong pulse that preceded this gap.
+    let firstPause = Math.min(pauseMs, remaining);
+    pulse.push(firstPause);
+    remaining -= firstPause;
+    while (remaining >= blipMs) {
+      const blip = Math.min(blipMs, remaining);
+      remaining -= blip;
+      const pause = Math.min(pauseMs, remaining);
+      remaining -= pause;
+      pulse.push(blip, pause);
     }
-    const rawTotal = pattern.reduce((a, b) => a + b, 0);
-    const scale = totalMs / rawTotal;
-    return pattern.map((ms) => Math.max(10, Math.round(ms * scale)));
+    // If anything's left over (shouldn't normally happen), fold it into the final
+    // pause so the gap's total duration still matches gapMs exactly.
+    if (remaining > 0) pulse[pulse.length - 1] += remaining;
+    return pulse;
   }
 
-  const PURR_DISPLAY_MS = 2000;
-  const PURR_VIBRATION_PATTERN = buildPurrVibrationPattern(PURR_DISPLAY_MS);
+  const PURR_STRONG_PULSE_MS = 220;
+  const PURR_GAP_MS = 780;
+  const PURR_VIBRATION_PATTERN = [
+    PURR_STRONG_PULSE_MS, ...buildIdleRumble(PURR_GAP_MS),
+    PURR_STRONG_PULSE_MS, ...buildIdleRumble(PURR_GAP_MS),
+    PURR_STRONG_PULSE_MS, PURR_GAP_MS
+  ];
+  const PURR_DISPLAY_MS = PURR_VIBRATION_PATTERN.reduce((a, b) => a + b, 0);
   // A tap during an active purr only extends it if it lands within this window of the
   // purr starting — a tap arriving well after that (even though she's technically
   // still "purring" for the last bit of PURR_DISPLAY_MS) reads more like a fresh,
