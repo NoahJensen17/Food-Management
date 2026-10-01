@@ -27,7 +27,7 @@ window.ViewRecipes = (function () {
           <span class="search-field__label">Search</span>
           <span class="search-field__input-wrap">
             <input type="search" id="recipe-search" placeholder="Name, ingredient, or step…" value="${escapeAttr(searchTerm)}" />
-            <button type="button" class="search-field__clear" id="recipe-search-clear" title="Clear search" aria-label="Clear search" style="${searchTerm ? "" : "display:none"}">${iconCancel()}</button>
+            <button type="button" class="search-field__clear" id="recipe-search-clear" title="Clear search" aria-label="Clear search" style="${searchTerm ? "" : "display:none"}">${iconEraser()}</button>
           </span>
         </label>
         <button class="btn-icon" id="btn-new" title="Add recipe">${iconPlus()}</button>
@@ -268,6 +268,7 @@ window.ViewRecipes = (function () {
   function iconPlus() { return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>`; }
   function iconTrash() { return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>`; }
   function iconCancel() { return `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>`; }
+  function iconEraser() { return `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 20H9l-6-6 10-10 6 6-5 5z"/><path d="M12 16l-4-4"/></svg>`; }
   function iconCart() { return `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>`; }
   function iconCheck() { return `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>`; }
 
