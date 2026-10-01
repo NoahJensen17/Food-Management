@@ -1106,18 +1106,30 @@ main:has(#view-home.active) {
 
 /* ---------- Install to Home Screen ---------- */
 
+/* Centered popup (fixed, so it never takes part in the page's flex layout). The huge
+   spread shadow dims the page behind it. */
 .install-bar {
   display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 900;
+  width: min(320px, calc(100vw - 40px));
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 9px 16px;
+  gap: 14px;
+  padding: 24px 20px 20px;
   background: var(--orange-700);
   color: #fff;
-  font-size: 13px;
+  font-size: 15px;
+  text-align: center;
+  border-radius: 16px;
+  box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.5);
 }
 
-.install-bar img { border-radius: 5px; flex-shrink: 0; }
-.install-bar__text { flex: 1; min-width: 0; }
+.install-bar img { border-radius: 14px; }
+.install-bar__actions { display: flex; gap: 10px; }
 
 .install-btn {
   border: none;
