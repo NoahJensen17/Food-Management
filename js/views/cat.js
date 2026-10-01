@@ -360,9 +360,9 @@ window.CatWidget = (function () {
     if (state === "startled") return;
 
     // Tapping again while she's already purring queues one more purr to play right
-    // after the current one finishes, instead of being ignored — but only within the
-    // first PURR_QUEUE_WINDOW_MS of the current purr starting, so a tap long after it
-    // was already winding down doesn't feel like an unexpected continuation. The
+    // after the current one finishes, instead of being ignored — but only within
+    // PURR_QUEUE_WINDOW_MS of the current purr starting (currently the same length as
+    // the purr itself, so effectively any tap during an active purr queues). The
     // vibration itself isn't retriggered here — it starts fresh when the queued purr
     // actually begins (see purrThenResume), so the haptic pattern doesn't overlap with
     // the one still playing from the current purr.
@@ -415,10 +415,9 @@ window.CatWidget = (function () {
   const PURR_VIBRATION_PATTERN = [...PURR_BEAT, ...PURR_BEAT, ...PURR_BEAT];
   const PURR_DISPLAY_MS = PURR_VIBRATION_PATTERN.reduce((a, b) => a + b, 0);
   // A tap during an active purr only extends it if it lands within this window of the
-  // purr starting — a tap arriving well after that (even though she's technically
-  // still "purring" for the last bit of PURR_DISPLAY_MS) reads more like a fresh,
-  // separate tap than a continuation, so it's left alone rather than queued.
-  const PURR_QUEUE_WINDOW_MS = 2000;
+  // purr starting. Matches PURR_DISPLAY_MS (both 3s), so in practice any tap landing
+  // while she's still purring queues an extension.
+  const PURR_QUEUE_WINDOW_MS = 3000;
 
   function vibrate() {
     if (navigator.vibrate) navigator.vibrate(PURR_VIBRATION_PATTERN);
