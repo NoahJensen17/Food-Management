@@ -321,6 +321,11 @@ window.CatWidget = (function () {
   function onTap() {
     if (state === "sleeping" || state === "lying-down") {
       clearTimers();
+      // Vibration must fire synchronously inside the real click handler — browsers
+      // (Chrome on Android included) silently ignore navigator.vibrate() once it's
+      // called from inside a setTimeout callback like the one below, since by then
+      // it's no longer considered part of the original user gesture.
+      vibrate();
       setState("waking");
       after(900, () => {
         setState("sitting");
@@ -332,6 +337,7 @@ window.CatWidget = (function () {
 
     if (state === "sitting") {
       clearTimers();
+      vibrate();
       purrThenResume();
       return;
     }
@@ -349,11 +355,20 @@ window.CatWidget = (function () {
     });
   }
 
-  // Sitting or (just-woken) sleeping cat reacts to a tap with a "Purr" text + a quick
-  // in-place vibration, then goes back to sitting for a while before wandering again.
-  // This is the only tap reaction that vibrates the device — startled/no-op taps don't.
-  function purrThenResume() {
+  // Vibration must be triggered synchronously inside the actual click/tap event
+  // handler — browsers (Chrome on Android included) silently ignore
+  // navigator.vibrate() once called from inside a setTimeout callback, since by then
+  // it's no longer considered part of the original user gesture. Every call site
+  // below calls this directly from onTap, never from a delayed callback.
+  function vibrate() {
     if (navigator.vibrate) navigator.vibrate(40);
+  }
+
+  // Sitting or (just-woken) sleeping cat reacts to a tap with a "Purr" text + a quick
+  // in-place vibration (triggered by the caller via vibrate(), see above), then goes
+  // back to sitting for a while before wandering again. This is the only tap reaction
+  // that vibrates the device — startled/no-op taps don't.
+  function purrThenResume() {
     setState("purring");
     after(900, () => {
       setState("sitting");
