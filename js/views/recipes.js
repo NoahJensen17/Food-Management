@@ -2,7 +2,6 @@ window.ViewRecipes = (function () {
   const el = () => document.getElementById("view-recipes");
   const overlay = () => document.getElementById("recipe-overlay");
   const panel = () => document.getElementById("recipe-overlay-panel");
-  let deleteMode = false;
 
   async function render() {
     const recipes = await window.Store.getRecipes();
@@ -11,24 +10,19 @@ window.ViewRecipes = (function () {
     el().innerHTML = `
       <div class="toolbar">
         <button class="btn-icon" id="btn-new" title="Add recipe">${iconPlus()}</button>
-        <button class="btn-icon danger" id="btn-delete-mode" title="${deleteMode ? "Done deleting" : "Delete recipes"}">
-          ${deleteMode ? iconCancel() : iconTrash()}
-        </button>
       </div>
       ${sorted.length === 0 ? `<div class="empty-state">No recipes yet. Add your first one!</div>` : `<div class="recipe-grid">${sorted.map(cardHtml).join("")}</div>`}
     `;
 
     document.getElementById("btn-new").addEventListener("click", () => openEditor(null));
-    document.getElementById("btn-delete-mode").addEventListener("click", () => { deleteMode = !deleteMode; render(); });
 
     el().querySelectorAll(".recipe-card").forEach((card) => {
       card.addEventListener("click", () => {
-        const name = card.dataset.name;
-        if (deleteMode) {
-          deleteRecipe(name);
-        } else {
-          openEditor(recipes.find((r) => r.name === name));
-        }
+        openEditor(recipes.find((r) => r.name === card.dataset.name));
+      });
+      card.querySelector('[data-action="delete-recipe"]').addEventListener("click", (e) => {
+        e.stopPropagation();
+        deleteRecipe(card.dataset.name, e.currentTarget);
       });
     });
   }
@@ -38,17 +32,23 @@ window.ViewRecipes = (function () {
       <div class="recipe-card" data-name="${escapeAttr(r.name)}">
         <div class="recipe-card__top">
           <div class="recipe-card__name">${escapeHtml(r.name)}</div>
+          <button class="btn-icon danger" data-action="delete-recipe" title="Delete recipe" aria-label="Delete ${escapeAttr(r.name)}">${iconTrash()}</button>
         </div>
       </div>
     `;
   }
 
-  async function deleteRecipe(name) {
+  async function deleteRecipe(name, btn) {
+    if (!confirm(`Delete "${name}" and its instructions?`)) return;
+    btn.disabled = true;
+    btn.innerHTML = `<span class="btn-spinner btn-spinner--dark" aria-hidden="true"></span>`;
     try {
       await window.Store.deleteRecipe(name);
       render();
     } catch (err) {
       alert(err.message || "Couldn't delete recipe. Please try again.");
+      btn.disabled = false;
+      btn.innerHTML = iconTrash();
     }
   }
 

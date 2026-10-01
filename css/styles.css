@@ -401,7 +401,7 @@ main:has(#view-home.active) {
 .recipe-card__top {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
 }
 
 .recipe-card__name {
@@ -521,6 +521,11 @@ main:has(#view-home.active) {
   border-top-color: #fff;
   border-radius: 50%;
   animation: btn-spin 0.7s linear infinite;
+}
+
+.btn-spinner--dark {
+  border-color: rgba(0, 0, 0, 0.15);
+  border-top-color: var(--danger);
 }
 
 @keyframes btn-spin {

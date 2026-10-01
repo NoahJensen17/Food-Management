@@ -126,7 +126,8 @@ function deleteCheckedShoppingItems() {
 function deleteRowsForRecipe(sheetName, nameCol, name) {
   const { sheet, headers, rows } = readSheet(sheetName);
   const col = colIndex(headers, nameCol);
-  const toDelete = rows.filter((r) => r.values[col] === name);
+  const target = String(name).trim();
+  const toDelete = rows.filter((r) => String(r.values[col]).trim() === target);
   deleteRowNumbers(sheet, toDelete.map((r) => r.rowNumber));
   return toDelete.length;
 }
