@@ -105,6 +105,17 @@ window.CatWidget = (function () {
     spriteEl.querySelector(".cat-sprite__pose").innerHTML = catSvgFor(view);
   }
 
+  // Sits facing the user ("toward") 70% of the time, and facing away ("away") the
+  // other 30% — but facing away while sitting is only ever allowed on the rug (a
+  // cat curled up with her back to the room reads naturally there, not in the open
+  // floor), so onRug must be true for the 30% roll to actually take effect; off the
+  // rug she always sits facing toward regardless of the roll.
+  function sitDown(onRug) {
+    const sitFacingAway = onRug && Math.random() < 0.3;
+    setView(sitFacingAway ? "away" : "toward");
+    setState("sitting");
+  }
+
   function positionSprite() {
     spriteEl.style.left = pos.x + "%";
     spriteEl.style.top = pos.y + "%";
@@ -212,11 +223,11 @@ window.CatWidget = (function () {
     if (onRug) {
       if (roll < 0.35) {
         if (sleepSuppressed) {
-          setState("sitting");
+          sitDown(true);
           after(randBetween(SIT_MIN_MS, SIT_MAX_MS), () => scheduleNextWalk(200));
         } else decideSleepSpot(true);
       } else if (roll < 0.7) {
-        setState("sitting");
+        sitDown(true);
         after(randBetween(SIT_MIN_MS, SIT_MAX_MS), () => scheduleNextWalk(200));
       } else scheduleNextWalk(randBetween(400, 1500));
       return;
@@ -224,11 +235,11 @@ window.CatWidget = (function () {
 
     if (roll < 0.12) {
       if (sleepSuppressed) {
-        setState("sitting");
+        sitDown(false);
         after(randBetween(SIT_MIN_MS, SIT_MAX_MS), () => scheduleNextWalk(200));
       } else decideSleepSpot(false);
     } else if (roll < 0.3) {
-      setState("sitting");
+      sitDown(false);
       after(randBetween(SIT_MIN_MS, SIT_MAX_MS), () => scheduleNextWalk(200));
     } else if (roll < 0.65) {
       scheduleNextWalk(randBetween(400, 1500));
