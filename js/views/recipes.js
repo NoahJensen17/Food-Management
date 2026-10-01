@@ -25,7 +25,10 @@ window.ViewRecipes = (function () {
       <div class="toolbar">
         <label class="search-field" for="recipe-search">
           <span class="search-field__label">Search</span>
-          <input type="search" id="recipe-search" placeholder="Name, ingredient, or step…" value="${escapeAttr(searchTerm)}" />
+          <span class="search-field__input-wrap">
+            <input type="search" id="recipe-search" placeholder="Name, ingredient, or step…" value="${escapeAttr(searchTerm)}" />
+            <button type="button" class="search-field__clear" id="recipe-search-clear" title="Clear search" aria-label="Clear search" style="${searchTerm ? "" : "display:none"}">${iconCancel()}</button>
+          </span>
         </label>
         <button class="btn-icon" id="btn-new" title="Add recipe">${iconPlus()}</button>
       </div>
@@ -35,9 +38,20 @@ window.ViewRecipes = (function () {
     document.getElementById("btn-new").addEventListener("click", () => openEditor(null));
 
     const searchInput = document.getElementById("recipe-search");
+    const clearBtn = document.getElementById("recipe-search-clear");
+
     searchInput.addEventListener("input", (e) => {
       searchTerm = e.target.value;
+      clearBtn.style.display = searchTerm ? "" : "none";
       renderGridOnly(sorted.filter((r) => matchesSearch(r, searchTerm)), sorted.length, recipes);
+    });
+
+    clearBtn.addEventListener("click", () => {
+      searchTerm = "";
+      searchInput.value = "";
+      clearBtn.style.display = "none";
+      searchInput.focus();
+      renderGridOnly(sorted, sorted.length, recipes);
     });
 
     wireCards(filtered, recipes);
