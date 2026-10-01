@@ -3,19 +3,61 @@ window.ViewRecipes = (function () {
   const overlay = () => document.getElementById("app-overlay");
   const panel = () => document.getElementById("app-overlay-panel");
 
+  // Kept across re-renders (e.g. after add/edit/delete) so the search term isn't lost
+  // just because the list redraws.
+  let searchTerm = "";
+
+  function matchesSearch(recipe, term) {
+    if (!term) return true;
+    const needle = term.toLowerCase();
+    if (recipe.name.toLowerCase().includes(needle)) return true;
+    if (recipe.ingredients.some((ing) => ing.toLowerCase().includes(needle))) return true;
+    if (recipe.instructions.some((step) => step.toLowerCase().includes(needle))) return true;
+    return false;
+  }
+
   async function render() {
     const recipes = await window.Store.getRecipes();
     const sorted = [...recipes].sort((a, b) => a.name.localeCompare(b.name));
+    const filtered = sorted.filter((r) => matchesSearch(r, searchTerm));
 
     el().innerHTML = `
       <div class="toolbar">
+        <label class="search-field" for="recipe-search">
+          <span class="search-field__label">Search</span>
+          <input type="search" id="recipe-search" placeholder="Name, ingredient, or step…" value="${escapeAttr(searchTerm)}" />
+        </label>
         <button class="btn-icon" id="btn-new" title="Add recipe">${iconPlus()}</button>
       </div>
-      ${sorted.length === 0 ? `<div class="empty-state">No recipes yet. Add your first one!</div>` : `<div class="recipe-grid">${sorted.map(cardHtml).join("")}</div>`}
+      ${renderGrid(filtered, sorted.length)}
     `;
 
     document.getElementById("btn-new").addEventListener("click", () => openEditor(null));
 
+    const searchInput = document.getElementById("recipe-search");
+    searchInput.addEventListener("input", (e) => {
+      searchTerm = e.target.value;
+      renderGridOnly(sorted.filter((r) => matchesSearch(r, searchTerm)), sorted.length, recipes);
+    });
+
+    wireCards(filtered, recipes);
+  }
+
+  function renderGrid(filtered, totalCount) {
+    if (totalCount === 0) return `<div class="empty-state">No recipes yet. Add your first one!</div>`;
+    if (filtered.length === 0) return `<div class="empty-state">No recipes match your search.</div>`;
+    return `<div class="recipe-grid">${filtered.map(cardHtml).join("")}</div>`;
+  }
+
+  // Re-renders only the grid portion (not the toolbar/search input) so typing in the
+  // search box never loses focus or cursor position the way a full render() would.
+  function renderGridOnly(filtered, totalCount, recipes) {
+    const existingGrid = el().querySelector(".recipe-grid, .empty-state");
+    if (existingGrid) existingGrid.outerHTML = renderGrid(filtered, totalCount);
+    wireCards(filtered, recipes);
+  }
+
+  function wireCards(filtered, recipes) {
     el().querySelectorAll(".recipe-card").forEach((card) => {
       card.addEventListener("click", () => {
         openEditor(recipes.find((r) => r.name === card.dataset.name));

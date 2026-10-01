@@ -387,6 +387,41 @@ main:has(.view.active .toolbar) {
   flex: 1;
 }
 
+/* Spans the rest of the toolbar (the add button on the right keeps its own size,
+   this takes up whatever's left) rather than sitting at a fixed width. */
+.search-field {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.search-field__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--orange-500);
+  flex-shrink: 0;
+}
+
+.search-field input[type="search"] {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--ink);
+  background: var(--paper);
+}
+
+.search-field input[type="search"]:focus {
+  outline: none;
+  border-color: var(--orange-400);
+}
+
 /* ---------- List rows (recipes / shopping / tasks) ---------- */
 
 .list {
