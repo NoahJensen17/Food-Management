@@ -295,8 +295,13 @@ main:has(#view-home.active) {
 
 /* ---------- Toolbar (per-screen action row) ---------- */
 
-/* White top bar mirroring the bottom nav: bleeds edge-to-edge (negative margins cancel
-   <main>'s padding) and stays pinned at the top while the list scrolls beneath it. */
+/* White top bar mirroring the bottom nav: bleeds edge-to-edge (negative side margins
+   cancel <main>'s padding; the top padding is removed below so it sits flush with the
+   top of the frame) and stays pinned while the list scrolls beneath it. */
+main:has(.view.active .toolbar) {
+  padding-top: 0;
+}
+
 .toolbar {
   position: sticky;
   top: 0;
@@ -305,8 +310,8 @@ main:has(#view-home.active) {
   align-items: center;
   justify-content: flex-end;
   gap: 8px;
-  height: 56px;
-  margin: -16px -14px 16px;
+  height: 40px;
+  margin: 0 -14px 16px;
   padding: 0 14px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
