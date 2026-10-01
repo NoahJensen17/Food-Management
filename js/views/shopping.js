@@ -56,9 +56,12 @@ window.ViewShopping = (function () {
       return `<div class="empty-state">Your shopping list is empty.</div>`;
     }
 
-    let html = `<div class="list">${active.map((i) => rowHtml(i)).join("")}</div>`;
+    let html = "";
+    if (active.length) {
+      html += `<div class="section-heading">Shopping List</div><div class="list">${active.map((i) => rowHtml(i)).join("")}</div>`;
+    }
     if (checked.length) {
-      html += `<div class="section-heading">Checked Off</div><div class="list">${checked.map((i) => rowHtml(i)).join("")}</div>`;
+      html += `<div class="section-heading">Added to Cart</div><div class="list">${checked.map((i) => rowHtml(i)).join("")}</div>`;
     }
     return html;
   }
