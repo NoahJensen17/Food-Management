@@ -28,10 +28,11 @@
    * header/title band = 128/1300 (~9.85%), bottom nav band = 125/1300 (~9.6%).
    * --phone-width matches a modern phone viewport (iPhone/Android portrait ~390-430px).
    */
-  --phone-width: 412px;
-  /* Design-space height on desktop: matches the usable viewport of a modern phone
-     (installed app on a 412-wide Android is ~412 x 800). */
-  --phone-height: 800px;
+  --phone-width: 420px;
+  /* Design-space height on desktop only (see the min-width: 480px media query below);
+     real phones always use their actual viewport height instead (max-width: 479px
+     media query), so this only affects the PC/desktop preview frame. */
+  --phone-height: 700px;
   --header-height: 64px;
   --nav-height: 54px;
 }
