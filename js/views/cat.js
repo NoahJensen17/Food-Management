@@ -380,6 +380,10 @@ window.CatWidget = (function () {
              the black a bit more like a real calico's scattered patches. -->
         <path d="M36 82 Q42 78 44 84 Q40 90 34 88 Q32 84 36 82Z" fill="#faf6ee"/>
         <path d="M78 86 Q86 84 86 92 Q80 96 76 92 Q75 88 78 86Z" fill="#d17a2e"/>
+        <!-- Extra orange markings: one on the right shoulder, one low on the back
+             near the tail base, both inset from the body's edge so black frames them. -->
+        <path d="M76 64 Q84 64 85 72 Q80 78 75 73 Q72 68 76 64Z" fill="#d17a2e"/>
+        <path d="M54 86 Q64 82 70 88 Q68 96 58 95 Q51 92 54 86Z" fill="#d17a2e"/>
 
         <g class="cat-head-group">
           <path d="M36 40 L28 16 L50 32Z" fill="#d17a2e"/>
