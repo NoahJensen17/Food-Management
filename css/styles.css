@@ -260,8 +260,11 @@ main:has(#view-home.active) {
 /* The cat card is the last thing on Home and stretches to fill whatever vertical
    space is left after the greeting/weather/verse cards above it, so the room reaches
    the bottom of the screen (with a small gap before the nav) on any phone height
-   instead of leaving dead space below a fixed-height room on taller screens. */
-#view-home {
+   instead of leaving dead space below a fixed-height room on taller screens.
+   Specifically targets #view-home.active (not just #view-home) since an ID selector
+   would otherwise always beat .view's display:none and leave Home visible underneath
+   whichever view is actually active. */
+#view-home.active {
   display: flex;
   flex-direction: column;
   min-height: 100%;
