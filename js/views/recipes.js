@@ -177,6 +177,8 @@ window.ViewRecipes = (function () {
 
         const saveBtn = document.getElementById("btn-save");
         saveBtn.disabled = true;
+        saveBtn.classList.add("is-loading");
+        saveBtn.innerHTML = `<span class="btn-spinner" aria-hidden="true"></span>Saving…`;
         try {
           if (isNew) {
             await window.Store.addRecipe(draft);
@@ -188,6 +190,8 @@ window.ViewRecipes = (function () {
         } catch (err) {
           alert(err.message || "Couldn't save recipe. Please try again.");
           saveBtn.disabled = false;
+          saveBtn.classList.remove("is-loading");
+          saveBtn.textContent = "Save Recipe";
         }
       });
     }

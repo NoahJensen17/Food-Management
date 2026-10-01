@@ -127,8 +127,21 @@ function deleteRowsForRecipe(sheetName, nameCol, name) {
   const { sheet, headers, rows } = readSheet(sheetName);
   const col = colIndex(headers, nameCol);
   const toDelete = rows.filter((r) => r.values[col] === name);
-  toDelete.sort((a, b) => b.rowNumber - a.rowNumber).forEach((r) => sheet.deleteRow(r.rowNumber));
+  deleteRowNumbers(sheet, toDelete.map((r) => r.rowNumber));
   return toDelete.length;
+}
+
+// Deletes the given 1-based row numbers, collapsing consecutive runs into a single
+// deleteRows call (one API round-trip per run instead of one per row).
+function deleteRowNumbers(sheet, rowNumbers) {
+  const sorted = rowNumbers.slice().sort((a, b) => b - a);
+  let i = 0;
+  while (i < sorted.length) {
+    let j = i;
+    while (j + 1 < sorted.length && sorted[j + 1] === sorted[j] - 1) j++;
+    sheet.deleteRows(sorted[j], j - i + 1);
+    i = j + 1;
+  }
 }
 
 function recipeExists(name) {
@@ -164,13 +177,18 @@ function deleteRecipe(body) {
   return { deleted: true };
 }
 
-function writeRecipeRows(recipe) {
-  const recipesSheet = getSheet(SHEET_RECIPES);
-  const ingredients = recipe.ingredients && recipe.ingredients.length ? recipe.ingredients : [""];
-  ingredients.forEach((ing) => recipesSheet.appendRow([recipe.name, ing]));
+// Writes all rows for a tab with one setValues call instead of an appendRow per row,
+// which is what made saving slow (each appendRow is its own round-trip).
+function appendRows(sheet, rows) {
+  if (!rows.length) return;
+  const start = sheet.getLastRow() + 1;
+  sheet.getRange(start, 1, rows.length, rows[0].length).setValues(rows);
+}
 
-  const instructionsSheet = getSheet(SHEET_INSTRUCTIONS);
-  (recipe.instructions || []).forEach((step, i) => {
-    instructionsSheet.appendRow([recipe.name, step, i + 1]);
-  });
+function writeRecipeRows(recipe) {
+  const ingredients = recipe.ingredients && recipe.ingredients.length ? recipe.ingredients : [""];
+  appendRows(getSheet(SHEET_RECIPES), ingredients.map((ing) => [recipe.name, ing]));
+
+  const steps = (recipe.instructions || []).map((step, i) => [recipe.name, step, i + 1]);
+  appendRows(getSheet(SHEET_INSTRUCTIONS), steps);
 }

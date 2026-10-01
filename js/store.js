@@ -146,7 +146,12 @@ window.Store = (function () {
   // "Instructions" tab: one row per step (Recipe Name, Step Description, Step Number).
   // Grouped client-side into { name, ingredients: [string,...], instructions: [string,...] }.
 
+  // In-memory copy of the recipe list. Successful writes patch it directly, so the
+  // list re-renders instantly after a save instead of re-downloading both sheet tabs.
+  let recipesCache = null;
+
   async function getRecipes() {
+    if (recipesCache) return recipesCache.map(cloneRecipe);
     const cfg = window.APP_CONFIG.sheets.tabs;
     const [recipeRows, instructionRows] = await Promise.all([
       fetchSheet(cfg.recipes),
@@ -172,19 +177,34 @@ window.Store = (function () {
         if (step) byName.get(name).instructions.push(step);
       });
 
-    return [...byName.values()];
+    recipesCache = [...byName.values()];
+    return recipesCache.map(cloneRecipe);
+  }
+
+  function cloneRecipe(r) {
+    return { name: r.name, ingredients: [...r.ingredients], instructions: [...r.instructions] };
   }
 
   async function addRecipe(recipe) {
-    return callAppsScript("addRecipe", { recipe });
+    const result = await callAppsScript("addRecipe", { recipe });
+    if (recipesCache) recipesCache.push(cloneRecipe(recipe));
+    return result;
   }
 
   async function updateRecipe(originalName, recipe) {
-    return callAppsScript("updateRecipe", { originalName, recipe });
+    const result = await callAppsScript("updateRecipe", { originalName, recipe });
+    if (recipesCache) {
+      const idx = recipesCache.findIndex((r) => r.name === originalName);
+      if (idx === -1) recipesCache.push(cloneRecipe(recipe));
+      else recipesCache[idx] = cloneRecipe(recipe);
+    }
+    return result;
   }
 
   async function deleteRecipe(name) {
-    return callAppsScript("deleteRecipe", { name });
+    const result = await callAppsScript("deleteRecipe", { name });
+    if (recipesCache) recipesCache = recipesCache.filter((r) => r.name !== name);
+    return result;
   }
 
   // ---- Shopping List (Sheets-backed) ----
