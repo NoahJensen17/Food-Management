@@ -19,7 +19,6 @@ window.ViewShopping = (function () {
 
     document.getElementById("btn-add").addEventListener("click", () => openEditor(null, sections));
     document.getElementById("btn-clear").addEventListener("click", () => {
-      if (!confirm("Remove all items added to cart?")) return;
       background(window.Store.deleteCheckedShoppingItems());
       render();
     });
