@@ -1103,3 +1103,125 @@ main:has(#view-home.active) {
   100% { opacity: 0; transform: translate(-50%, -18px); }
 }
 
+
+/* ---------- Install to Home Screen ---------- */
+
+.install-bar {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  background: var(--orange-700);
+  color: #fff;
+  font-size: 13px;
+}
+
+.install-bar img { border-radius: 5px; flex-shrink: 0; }
+.install-bar__text { flex: 1; min-width: 0; }
+
+.install-btn {
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 9px 18px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--orange-400);
+  cursor: pointer;
+}
+
+.install-btn--sm { padding: 6px 12px; font-size: 13px; }
+
+.install-btn--ghost {
+  background: transparent;
+  color: inherit;
+  border: 1px solid currentColor;
+  font-weight: 600;
+}
+
+.install-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.install-card {
+  width: 100%;
+  max-width: 360px;
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.install-card__header {
+  position: relative;
+  padding: 24px;
+  text-align: center;
+  background: var(--orange-700);
+}
+
+.install-card__icon { border-radius: 16px; }
+.install-card__name { margin-top: 8px; font-size: 17px; font-weight: 700; color: #fff; }
+.install-card__sub { font-size: 12px; color: rgba(255, 255, 255, 0.6); }
+
+.install-close {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+#install-steps { padding: 18px 22px 6px; }
+
+.install-step { text-align: center; }
+.install-step__icon { font-size: 36px; }
+.install-step__title { margin-top: 6px; font-size: 15px; font-weight: 600; color: var(--ink); }
+.install-step__body { margin-top: 6px; font-size: 13px; color: var(--ink-muted); }
+
+.install-step__note {
+  margin-top: 10px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--ink-muted);
+  background: #f8fafc;
+  border-radius: var(--radius-md);
+}
+
+.install-now {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--orange-400);
+  color: #fff;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.install-card__footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 22px 18px;
+}
+
+.install-card__footer .install-btn--ghost { color: var(--ink-muted); }
+.install-card__footer .install-btn.done { background: var(--success); }
+
+#step-dots { flex: 1; display: flex; gap: 6px; }
+.install-dot { width: 7px; height: 7px; border-radius: 50%; background: #e2e8f0; }
+.install-dot.active { background: var(--orange-400); }
