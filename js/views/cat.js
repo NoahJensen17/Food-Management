@@ -397,48 +397,22 @@ window.CatWidget = (function () {
   // it's no longer considered part of the original user gesture. Every call site
   // below calls this directly from onTap, never from a delayed callback.
   // A real cat's purr comes in slow, distinct rolling waves rather than one
-  // continuous buzz — three strong pulses, a second apart, reads like a cat settling
-  // into a dragged-out purr instead of a fast rattling vibration. Between those three
-  // bursts the device still buzzes faintly rather than going fully silent, via a
-  // string of very short, widely-spaced micro-pulses standing in for a weak
-  // "amplitude" the Vibration API has no direct control over. PURR_DISPLAY_MS (used
-  // below in purrThenResume) is kept in sync with this so the "Purr" text stays on
-  // screen for exactly as long as the pattern takes to play out.
-  // navigator.vibrate()'s pattern array implicitly starts "on" and alternates from
-  // there, so every element spliced into the overall pattern must land on the right
-  // on/off parity. This fills a gap that follows a strong "on" pulse, so it must
-  // START with an "off" pause and alternate blip(on)/pause(off) from there, ending on
-  // an "off" too — so the strong pulse immediately after it still lands correctly on
-  // an "on" slot.
-  function buildIdleRumble(gapMs) {
-    const blipMs = 15;
-    const pauseMs = 110;
-    const pulse = [];
-    let remaining = gapMs;
-    // Initial pause right after the strong pulse that preceded this gap.
-    let firstPause = Math.min(pauseMs, remaining);
-    pulse.push(firstPause);
-    remaining -= firstPause;
-    while (remaining >= blipMs) {
-      const blip = Math.min(blipMs, remaining);
-      remaining -= blip;
-      const pause = Math.min(pauseMs, remaining);
-      remaining -= pause;
-      pulse.push(blip, pause);
-    }
-    // If anything's left over (shouldn't normally happen), fold it into the final
-    // pause so the gap's total duration still matches gapMs exactly.
-    if (remaining > 0) pulse[pulse.length - 1] += remaining;
-    return pulse;
-  }
-
-  const PURR_STRONG_PULSE_MS = 220;
-  const PURR_GAP_MS = 780;
-  const PURR_VIBRATION_PATTERN = [
-    PURR_STRONG_PULSE_MS, ...buildIdleRumble(PURR_GAP_MS),
-    PURR_STRONG_PULSE_MS, ...buildIdleRumble(PURR_GAP_MS),
-    PURR_STRONG_PULSE_MS, PURR_GAP_MS
-  ];
+  // continuous buzz — three one-second "beats" fill the full 3s purr, each a solid
+  // 900ms heavy buzz followed by a 100ms lighter moment. The Vibration API has no
+  // amplitude control, so "lighter" is approximated as a couple of brief blips rather
+  // than one continuous 100ms buzz (which would just read as more heavy vibration,
+  // not a lighter one). PURR_DISPLAY_MS (used below in purrThenResume) is kept in
+  // sync with this so the "Purr" text stays on screen for exactly as long as the
+  // pattern takes to play out.
+  //
+  // Each beat MUST have an even number of array elements — navigator.vibrate()'s
+  // pattern always starts "on" and strictly alternates, so repeating an odd-length
+  // beat flips on/off parity on every other repetition, silently turning what should
+  // be the 2nd heavy pulse into a no-op "off" gap instead. Ending each beat on an
+  // "off" duration (here, a final 25ms gap) keeps the array length even so all three
+  // repetitions land correctly.
+  const PURR_BEAT = [900, 25, 15, 20, 15, 25]; // on, off, on, off, on, off — sums to 1000ms
+  const PURR_VIBRATION_PATTERN = [...PURR_BEAT, ...PURR_BEAT, ...PURR_BEAT];
   const PURR_DISPLAY_MS = PURR_VIBRATION_PATTERN.reduce((a, b) => a + b, 0);
   // A tap during an active purr only extends it if it lands within this window of the
   // purr starting — a tap arriving well after that (even though she's technically

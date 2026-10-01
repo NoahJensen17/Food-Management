@@ -1309,44 +1309,79 @@ main:has(.view.active .toolbar) {
   animation: cat-purr-text 3s ease-out;
 }
 
-/* Three stronger bumps (at 0%, ~33%, ~67% of the 3s duration) matching the real
-   device vibration's three strong pulses a second apart, with a faint tremor filling
-   the gaps between them instead of going still — mirrors the haptic pattern's own
-   "strong pulse, weak rumble, strong pulse" rhythm. */
+/* Three matching 1s "beats" (one per 33.3% of the 3s duration): a sustained, strong
+   shake for the first 900ms (heavy), easing into a brief, lighter flutter for the
+   last 100ms — mirrors the real device vibration's 900ms-heavy/100ms-light rhythm,
+   repeated three times to fill the full purr. */
 @keyframes cat-purr-vibrate {
   0%, 100% { transform: translate(0, 0); }
-  2% { transform: translate(-1.5px, 0.5px); }
-  4% { transform: translate(1.5px, -0.5px); }
-  6% { transform: translate(-1.3px, 0.4px); }
-  8% { transform: translate(1.3px, -0.4px); }
-  11% { transform: translate(-0.3px, 0.1px); }
-  14% { transform: translate(0.3px, -0.1px); }
-  17% { transform: translate(-0.3px, 0.1px); }
-  20% { transform: translate(0.3px, -0.1px); }
-  23% { transform: translate(-0.3px, 0.1px); }
-  26% { transform: translate(0.3px, -0.1px); }
-  29% { transform: translate(-0.3px, 0.1px); }
-  33.3% { transform: translate(-1.5px, 0.5px); }
-  35.3% { transform: translate(1.5px, -0.5px); }
-  37.3% { transform: translate(-1.3px, 0.4px); }
-  39.3% { transform: translate(1.3px, -0.4px); }
-  44% { transform: translate(-0.3px, 0.1px); }
-  47% { transform: translate(0.3px, -0.1px); }
-  50% { transform: translate(-0.3px, 0.1px); }
-  53% { transform: translate(0.3px, -0.1px); }
-  56% { transform: translate(-0.3px, 0.1px); }
-  59% { transform: translate(0.3px, -0.1px); }
-  62% { transform: translate(-0.3px, 0.1px); }
-  66.7% { transform: translate(-1.5px, 0.5px); }
-  68.7% { transform: translate(1.5px, -0.5px); }
-  70.7% { transform: translate(-1.3px, 0.4px); }
-  72.7% { transform: translate(1.3px, -0.4px); }
-  76% { transform: translate(-0.3px, 0.1px); }
-  80% { transform: translate(0.3px, -0.1px); }
-  84% { transform: translate(-0.3px, 0.1px); }
-  88% { transform: translate(0.3px, -0.1px); }
-  92% { transform: translate(-0.2px, 0.08px); }
-  96% { transform: translate(0.2px, -0.08px); }
+  1.5% { transform: translate(-1.5px, 0.5px); }
+  3% { transform: translate(1.5px, -0.5px); }
+  4.5% { transform: translate(-1.5px, -0.5px); }
+  6% { transform: translate(1.5px, 0.5px); }
+  7.5% { transform: translate(-1.5px, 0.5px); }
+  9% { transform: translate(1.5px, -0.5px); }
+  10.5% { transform: translate(-1.5px, -0.5px); }
+  12% { transform: translate(1.5px, 0.5px); }
+  13.5% { transform: translate(-1.5px, 0.5px); }
+  15% { transform: translate(1.5px, -0.5px); }
+  16.5% { transform: translate(-1.5px, -0.5px); }
+  18% { transform: translate(1.5px, 0.5px); }
+  19.5% { transform: translate(-1.5px, 0.5px); }
+  21% { transform: translate(1.5px, -0.5px); }
+  22.5% { transform: translate(-1.5px, -0.5px); }
+  24% { transform: translate(1.5px, 0.5px); }
+  25.5% { transform: translate(-1.5px, 0.5px); }
+  27% { transform: translate(1.5px, -0.5px); }
+  28.5% { transform: translate(-0.5px, -0.2px); }
+  30% { transform: translate(0.5px, 0.2px); }
+  31.5% { transform: translate(-0.3px, -0.1px); }
+  33.3% { transform: translate(0, 0); }
+
+  34.8% { transform: translate(-1.5px, 0.5px); }
+  36.3% { transform: translate(1.5px, -0.5px); }
+  37.8% { transform: translate(-1.5px, -0.5px); }
+  39.3% { transform: translate(1.5px, 0.5px); }
+  40.8% { transform: translate(-1.5px, 0.5px); }
+  42.3% { transform: translate(1.5px, -0.5px); }
+  43.8% { transform: translate(-1.5px, -0.5px); }
+  45.3% { transform: translate(1.5px, 0.5px); }
+  46.8% { transform: translate(-1.5px, 0.5px); }
+  48.3% { transform: translate(1.5px, -0.5px); }
+  49.8% { transform: translate(-1.5px, -0.5px); }
+  51.3% { transform: translate(1.5px, 0.5px); }
+  52.8% { transform: translate(-1.5px, 0.5px); }
+  54.3% { transform: translate(1.5px, -0.5px); }
+  55.8% { transform: translate(-1.5px, -0.5px); }
+  57.3% { transform: translate(1.5px, 0.5px); }
+  58.8% { transform: translate(-1.5px, 0.5px); }
+  60.3% { transform: translate(1.5px, -0.5px); }
+  61.8% { transform: translate(-0.5px, -0.2px); }
+  63.3% { transform: translate(0.5px, 0.2px); }
+  64.8% { transform: translate(-0.3px, -0.1px); }
+  66.7% { transform: translate(0, 0); }
+
+  68.2% { transform: translate(-1.5px, 0.5px); }
+  69.7% { transform: translate(1.5px, -0.5px); }
+  71.2% { transform: translate(-1.5px, -0.5px); }
+  72.7% { transform: translate(1.5px, 0.5px); }
+  74.2% { transform: translate(-1.5px, 0.5px); }
+  75.7% { transform: translate(1.5px, -0.5px); }
+  77.2% { transform: translate(-1.5px, -0.5px); }
+  78.7% { transform: translate(1.5px, 0.5px); }
+  80.2% { transform: translate(-1.5px, 0.5px); }
+  81.7% { transform: translate(1.5px, -0.5px); }
+  83.2% { transform: translate(-1.5px, -0.5px); }
+  84.7% { transform: translate(1.5px, 0.5px); }
+  86.2% { transform: translate(-1.5px, 0.5px); }
+  87.7% { transform: translate(1.5px, -0.5px); }
+  89.2% { transform: translate(-1.5px, -0.5px); }
+  90.7% { transform: translate(1.5px, 0.5px); }
+  92.2% { transform: translate(-1.5px, 0.5px); }
+  93.7% { transform: translate(1.5px, -0.5px); }
+  95.2% { transform: translate(-0.5px, -0.2px); }
+  96.7% { transform: translate(0.5px, 0.2px); }
+  98.2% { transform: translate(-0.3px, -0.1px); }
 }
 
 @keyframes cat-purr-text {
