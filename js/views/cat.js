@@ -360,17 +360,29 @@ window.CatWidget = (function () {
   // navigator.vibrate() once called from inside a setTimeout callback, since by then
   // it's no longer considered part of the original user gesture. Every call site
   // below calls this directly from onTap, never from a delayed callback.
+  // A real purr isn't one flat buzz — it's a longer, rolling rumble. The Vibration API
+  // can't vary amplitude, only on/off timing, so this approximates that rolling feel
+  // with a pattern of alternating buzzes and brief pauses of varying length (longer
+  // buzzes read as the "louder" part of the rumble, short gaps as it dips), totaling
+  // about 1.8s — long enough to actually feel like a purr rather than a tap blip.
+  // PURR_DISPLAY_MS (used below in purrThenResume) is kept in sync with this so the
+  // "Purr" text stays on screen for roughly as long as the device is vibrating.
+  const PURR_VIBRATION_PATTERN = [120, 40, 150, 35, 110, 40, 160, 35, 130, 40, 150, 35, 120, 40, 140, 35, 130, 40, 150];
+  const PURR_DISPLAY_MS = 1700;
+
   function vibrate() {
-    if (navigator.vibrate) navigator.vibrate(40);
+    if (navigator.vibrate) navigator.vibrate(PURR_VIBRATION_PATTERN);
   }
 
   // Sitting or (just-woken) sleeping cat reacts to a tap with a "Purr" text + a quick
   // in-place vibration (triggered by the caller via vibrate(), see above), then goes
   // back to sitting for a while before wandering again. This is the only tap reaction
-  // that vibrates the device — startled/no-op taps don't.
+  // that vibrates the device — startled/no-op taps don't. The "Purr" text stays up for
+  // PURR_DISPLAY_MS, matched to the vibration pattern's own length above so the visual
+  // and haptic feedback end at roughly the same time.
   function purrThenResume() {
     setState("purring");
-    after(900, () => {
+    after(PURR_DISPLAY_MS, () => {
       setState("sitting");
       after(randBetween(1500, 3000), () => scheduleNextWalk(200));
     });
