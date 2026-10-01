@@ -33,7 +33,7 @@
      (installed app on a 412-wide Android is ~412 x 800). */
   --phone-height: 800px;
   --header-height: 64px;
-  --nav-height: 72px;
+  --nav-height: 54px;
 }
 
 * {
@@ -75,6 +75,20 @@ button {
   display: flex;
   flex-direction: column;
   box-shadow: 0 0 40px rgba(0, 0, 0, 0.12);
+}
+
+/* On phones the frame is pinned to the viewport itself, so the bottom nav is always at
+   the bottom edge of the screen regardless of browser-bar / dynamic-viewport quirks. */
+@media (max-width: 479px) {
+  html, body { overflow: hidden; }
+  .phone-frame {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: auto;
+  }
 }
 
 @media (min-width: 480px) {
@@ -142,7 +156,7 @@ main {
   flex: 1;
   min-height: 0;
   width: 100%;
-  padding: 16px 14px calc(var(--nav-height) + 24px);
+  padding: 16px 14px 16px; /* nav is a flex sibling, not an overlay, so no clearance needed */
   overflow-y: auto;
 }
 
@@ -639,18 +653,18 @@ main:has(.view.active .toolbar) {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 2px;
   border: none;
   background: transparent;
   color: var(--orange-500);
   cursor: pointer;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
 }
 
 .nav-item svg {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
 }
 
 .nav-item.active {
