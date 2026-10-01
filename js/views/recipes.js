@@ -152,21 +152,21 @@ window.ViewRecipes = (function () {
       });
 
       panel().querySelectorAll('[data-action="send-cart"]').forEach((btn) => {
-        btn.addEventListener("click", async () => {
+        btn.addEventListener("click", () => {
           const ing = draft.ingredients[Number(btn.dataset.i)];
           btn.disabled = true;
-          try {
-            await window.Store.addShoppingItem({
-              item: ing,
-              quantity: 1,
-              section: "Misc",
-              active: true
-            });
-            btn.innerHTML = iconCheck();
-          } catch (err) {
+          btn.innerHTML = iconCheck();
+          // Optimistic: the check shows immediately; revert only if the write fails.
+          window.Store.addShoppingItem({
+            item: ing,
+            quantity: 1,
+            section: "Misc",
+            active: true
+          }).catch((err) => {
             alert(err.message || "Couldn't add to shopping list. Please try again.");
             btn.disabled = false;
-          }
+            btn.innerHTML = iconCart();
+          });
         });
       });
 

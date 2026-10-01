@@ -20,7 +20,7 @@ window.ViewShopping = (function () {
     `;
 
     wireToolbar(sections);
-    wireList(items);
+    wireList();
   }
 
   function renderAddForm(sections) {
@@ -99,50 +99,61 @@ window.ViewShopping = (function () {
     if (btnAdd) btnAdd.addEventListener("click", () => { mode = "add"; render(); });
     if (btnEdit) btnEdit.addEventListener("click", () => { mode = "edit"; render(); });
     if (btnView) btnView.addEventListener("click", () => { mode = "list"; render(); });
-    if (btnClear) btnClear.addEventListener("click", async () => {
-      await window.Store.deleteCheckedShoppingItems();
+    if (btnClear) btnClear.addEventListener("click", () => {
+      background(window.Store.deleteCheckedShoppingItems());
       render();
     });
-    if (submit) submit.addEventListener("click", async () => {
+    if (submit) submit.addEventListener("click", () => {
       const itemText = document.getElementById("add-item").value.trim();
       if (!itemText) return;
-      await window.Store.addShoppingItem({
+      background(window.Store.addShoppingItem({
         item: itemText,
         quantity: Number(document.getElementById("add-qty").value) || 1,
         section: document.getElementById("add-section").value,
         active: true
-      });
+      }));
       render();
     });
   }
 
-  function wireList(items) {
+  // Store writes are optimistic (the UI has already updated), so nothing waits on them.
+  // If one fails, tell the user and redraw from the real data.
+  function background(promise) {
+    promise.catch((err) => {
+      alert(err.message || "Couldn't save that change. Please try again.");
+      render();
+    });
+  }
+
+  function wireList() {
     el().querySelectorAll('[data-action="toggle"]').forEach((btn) => {
-      btn.addEventListener("click", async (e) => {
+      btn.addEventListener("click", (e) => {
         const row = e.target.closest(".list-row");
         const itemName = row.dataset.item;
-        const item = items.find((i) => i.item === itemName);
-        const nextActive = !item.active;
+        // Read the current state from the DOM so rapid re-clicks flip correctly even
+        // before the delayed re-render below has run.
+        const nextActive = row.classList.contains("checked");
 
         // Show the toggle instantly so the click registers before the list reshuffles
         // (rows moving to/from "Checked Off" shifts everything below them into place).
         btn.classList.toggle("checked", !nextActive);
         row.classList.toggle("checked", !nextActive);
-        btn.disabled = true;
 
-        await window.Store.updateShoppingItem(itemName, { active: nextActive });
-        setTimeout(render, 400);
+        background(window.Store.updateShoppingItem(itemName, { active: nextActive }));
+        setTimeout(render, 250);
       });
     });
 
     el().querySelectorAll('[data-action="save-edit"]').forEach((btn) => {
-      btn.addEventListener("click", async (e) => {
+      btn.addEventListener("click", (e) => {
         const row = e.target.closest(".list-row");
         const itemName = row.dataset.item;
-        await window.Store.updateShoppingItem(itemName, {
-          item: row.querySelector(".edit-item").value.trim(),
+        const newName = row.querySelector(".edit-item").value.trim();
+        if (!newName) return;
+        background(window.Store.updateShoppingItem(itemName, {
+          item: newName,
           quantity: Number(row.querySelector(".edit-qty").value) || 1
-        });
+        }));
         render();
       });
     });

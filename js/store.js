@@ -210,33 +210,84 @@ window.Store = (function () {
   // ---- Shopping List (Sheets-backed) ----
   // "Shopping List" tab: Ingredient (primary key), Store Section, Quantity, Active Flag (1/0).
 
+  // Shopping-list writes are optimistic: the in-memory cache is patched synchronously
+  // (so the UI can redraw instantly) and the Apps Script call runs in the background.
+  // Writes go through a single queue so they reach the sheet in the order the user made
+  // them. If a write ultimately fails, the cache is dropped so the next read reloads
+  // the real sheet contents, and the returned promise rejects so the view can tell the
+  // user.
+  let shoppingCache = null;
+  let writeQueue = Promise.resolve();
+
+  function enqueueWrite(fn) {
+    const p = writeQueue.then(fn);
+    writeQueue = p.catch(() => {});
+    return p;
+  }
+
+  function syncShoppingWrite(action, payload) {
+    return enqueueWrite(() => callAppsScript(action, payload)).catch((err) => {
+      shoppingCache = null;
+      throw err;
+    });
+  }
+
+  const sameItem = (a, b) => String(a).trim().toLowerCase() === String(b).trim().toLowerCase();
+
   async function getShoppingList() {
-    const cfg = window.APP_CONFIG.sheets.tabs;
-    const rows = await fetchSheet(cfg.shoppingList);
-    return rows
-      .filter((row) => String(row["Ingredient"] || "").trim())
-      .map((row) => ({
-        item: String(row["Ingredient"]).trim(),
-        section: String(row["Store Section"] || "").trim(),
-        quantity: Number(row["Quantity"]) || 1,
-        active: Number(row["Active Flag"]) === 1
-      }));
+    if (!shoppingCache) {
+      // Let any in-flight writes land first so we don't read a half-updated sheet.
+      await writeQueue;
+      if (!shoppingCache) {
+        const cfg = window.APP_CONFIG.sheets.tabs;
+        const rows = await fetchSheet(cfg.shoppingList);
+        shoppingCache = rows
+          .filter((row) => String(row["Ingredient"] || "").trim())
+          .map((row) => ({
+            item: String(row["Ingredient"]).trim(),
+            section: String(row["Store Section"] || "").trim(),
+            quantity: Number(row["Quantity"]) || 1,
+            active: Number(row["Active Flag"]) === 1
+          }));
+      }
+    }
+    return shoppingCache.map((i) => ({ ...i }));
   }
 
   // item: { item, quantity, section, active }. Ingredient name is the primary key:
   // adding an ingredient that already exists updates that row instead of duplicating it.
-  async function addShoppingItem(item) {
-    return callAppsScript("addShoppingItem", item);
+  function addShoppingItem(item) {
+    if (shoppingCache) {
+      const existing = shoppingCache.find((i) => sameItem(i.item, item.item));
+      if (existing) {
+        existing.section = item.section;
+        existing.quantity = item.quantity;
+        existing.active = true;
+      } else {
+        shoppingCache.push({ item: item.item, section: item.section, quantity: item.quantity, active: true });
+      }
+    }
+    return syncShoppingWrite("addShoppingItem", item);
   }
 
   // originalItem identifies the existing row by ingredient name; patch carries the
   // fields to change (item/section/quantity/active).
-  async function updateShoppingItem(originalItem, patch) {
-    return callAppsScript("updateShoppingItem", { originalItem, ...patch });
+  function updateShoppingItem(originalItem, patch) {
+    if (shoppingCache) {
+      const existing = shoppingCache.find((i) => sameItem(i.item, originalItem));
+      if (existing) {
+        if (patch.item !== undefined) existing.item = patch.item;
+        if (patch.section !== undefined) existing.section = patch.section;
+        if (patch.quantity !== undefined) existing.quantity = patch.quantity;
+        if (patch.active !== undefined) existing.active = !!patch.active;
+      }
+    }
+    return syncShoppingWrite("updateShoppingItem", { originalItem, ...patch });
   }
 
-  async function deleteCheckedShoppingItems() {
-    return callAppsScript("deleteCheckedShoppingItems", {});
+  function deleteCheckedShoppingItems() {
+    if (shoppingCache) shoppingCache = shoppingCache.filter((i) => i.active);
+    return syncShoppingWrite("deleteCheckedShoppingItems", {});
   }
 
   // ---- Messages (Sheets-backed, read-only) ----

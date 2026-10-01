@@ -101,10 +101,15 @@ function updateShoppingItem(body) {
   const qtyCol = colIndex(headers, "Quantity");
   const activeCol = colIndex(headers, "Active Flag");
 
-  if (body.item !== undefined) sheet.getRange(match.rowNumber, ingCol + 1).setValue(body.item);
-  if (body.section !== undefined) sheet.getRange(match.rowNumber, secCol + 1).setValue(body.section);
-  if (body.quantity !== undefined) sheet.getRange(match.rowNumber, qtyCol + 1).setValue(body.quantity);
-  if (body.active !== undefined) sheet.getRange(match.rowNumber, activeCol + 1).setValue(body.active ? 1 : 0);
+  // Read-modify-write the whole row with one getValues/setValues pair instead of a
+  // separate setValue round-trip per changed field.
+  const range = sheet.getRange(match.rowNumber, 1, 1, headers.length);
+  const rowValues = range.getValues()[0];
+  if (body.item !== undefined) rowValues[ingCol] = body.item;
+  if (body.section !== undefined) rowValues[secCol] = body.section;
+  if (body.quantity !== undefined) rowValues[qtyCol] = body.quantity;
+  if (body.active !== undefined) rowValues[activeCol] = body.active ? 1 : 0;
+  range.setValues([rowValues]);
 
   return { updated: true };
 }
@@ -113,8 +118,7 @@ function deleteCheckedShoppingItems() {
   const { sheet, headers, rows } = readSheet(SHEET_SHOPPING_LIST);
   const activeCol = colIndex(headers, "Active Flag");
   const toDelete = rows.filter((r) => Number(r.values[activeCol]) === 0);
-  // Delete bottom-up so earlier row numbers stay valid as rows are removed.
-  toDelete.sort((a, b) => b.rowNumber - a.rowNumber).forEach((r) => sheet.deleteRow(r.rowNumber));
+  deleteRowNumbers(sheet, toDelete.map((r) => r.rowNumber));
   return { deleted: toDelete.length };
 }
 
