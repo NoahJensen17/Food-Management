@@ -391,6 +391,61 @@ main:has(.view.active .toolbar) {
   cursor: pointer;
 }
 
+/* ---------- Swipeable rows (shopping list) ----------
+   .swipe-row wraps a .list-row: the hint layer sits behind it, and the .list-row
+   itself is dragged horizontally on top via transform (see shopping.js). Unchecked
+   items only ever reveal the right-swipe "move to cart" hint; checked items can
+   reveal either the left-swipe "move back" hint or the right-swipe "delete" hint,
+   chosen by the swipe direction in progress. */
+.swipe-row {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  transition: opacity 0.2s ease;
+}
+
+.swipe-row .list-row {
+  position: relative;
+  z-index: 1;
+  touch-action: pan-y;
+}
+
+.swipe-row.dragging .list-row {
+  transition: none;
+}
+
+.swipe-row:not(.dragging) .list-row {
+  transition: transform 0.2s ease;
+}
+
+.swipe-hint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  font-weight: 600;
+  color: #ffffff;
+  opacity: 0;
+}
+
+.swipe-hint--move-right,
+.swipe-hint--move-left {
+  background: var(--orange-400);
+}
+
+.swipe-hint--move-right { justify-content: flex-start; }
+.swipe-hint--move-left { justify-content: flex-end; }
+
+.swipe-hint--delete {
+  background: #d64545;
+  justify-content: flex-start;
+}
+
+.swipe-hint.visible {
+  opacity: 1;
+}
+
 .list-row__title {
   font-weight: 500;
   color: var(--ink);

@@ -19,6 +19,7 @@ window.ViewShopping = (function () {
 
     document.getElementById("btn-add").addEventListener("click", () => openEditor(null, sections));
     document.getElementById("btn-clear").addEventListener("click", () => {
+      if (!confirm("Remove all items added to cart?")) return;
       background(window.Store.deleteCheckedShoppingItems());
       render();
     });
@@ -48,14 +49,24 @@ window.ViewShopping = (function () {
     return a.section.localeCompare(b.section) || a.item.localeCompare(b.item);
   }
 
+  // Unchecked ("Items to Purchase") rows only ever show the right-swipe hint (move to
+  // cart) — swiping left does nothing, so no left hint exists for them at all. Checked
+  // ("Added to Cart") rows show either hint depending on drag direction: left moves
+  // back to the purchase list, right deletes that single item.
   function rowHtml(item) {
     const checked = !item.active;
     return `
-      <div class="list-row ${checked ? "checked" : ""}" data-item="${escapeAttr(item.item)}">
-        <button class="checkbox ${checked ? "checked" : ""}" data-action="toggle" title="Mark ${checked ? "to buy" : "in cart"}" aria-label="Mark ${checked ? "to buy" : "in cart"}"></button>
-        <div class="list-row__body" data-action="edit">
-          <div class="list-row__title">${item.quantity} ${escapeHtml(item.item)}</div>
-          <div class="list-row__meta">${escapeHtml(item.section)}</div>
+      <div class="swipe-row" data-item="${escapeAttr(item.item)}">
+        ${checked
+          ? `<div class="swipe-hint swipe-hint--move-left" data-hint="left">${iconUndo()} Move back</div>
+             <div class="swipe-hint swipe-hint--delete" data-hint="right">${iconTrash()} Delete</div>`
+          : `<div class="swipe-hint swipe-hint--move-right" data-hint="right">${iconCheck()} In cart</div>`}
+        <div class="list-row ${checked ? "checked" : ""}">
+          <button class="checkbox ${checked ? "checked" : ""}" data-action="toggle" title="Mark ${checked ? "to buy" : "in cart"}" aria-label="Mark ${checked ? "to buy" : "in cart"}"></button>
+          <div class="list-row__body" data-action="edit">
+            <div class="list-row__title">${item.quantity} ${escapeHtml(item.item)}</div>
+            <div class="list-row__meta">${escapeHtml(item.section)}</div>
+          </div>
         </div>
       </div>
     `;
@@ -71,28 +82,122 @@ window.ViewShopping = (function () {
   }
 
   function wireList(items, sections) {
-    el().querySelectorAll(".list-row").forEach((row) => {
-      const itemName = row.dataset.item;
+    el().querySelectorAll(".swipe-row").forEach((swipeRow) => {
+      const itemName = swipeRow.dataset.item;
       const item = items.find((i) => i.item === itemName);
+      const row = swipeRow.querySelector(".list-row");
+      const checked = row.classList.contains("checked");
 
       // Tapping the checkbox toggles active/checked without opening the editor.
       row.querySelector('[data-action="toggle"]').addEventListener("click", (e) => {
         e.stopPropagation();
-        const btn = e.currentTarget;
-        const nextActive = row.classList.contains("checked");
-
-        // Show the toggle instantly so the click registers before the list reshuffles
-        // (rows moving to/from "Added to Cart" shifts everything below them into place).
-        btn.classList.toggle("checked", !nextActive);
-        row.classList.toggle("checked", !nextActive);
-
-        background(window.Store.updateShoppingItem(itemName, { active: nextActive }));
-        setTimeout(render, 250);
+        toggleActive(itemName, row, e.currentTarget);
       });
 
-      // Tapping anywhere else on the row opens it for editing — the same overlay
-      // used to add new items, pre-filled with this item's details.
-      row.querySelector('[data-action="edit"]').addEventListener("click", () => openEditor(item, sections));
+      // Tapping the rest of an unchecked row opens it for editing (same overlay used
+      // to add items, pre-filled). A checked ("Added to Cart") item is assumed
+      // already purchased, so tapping it does nothing — swipe or the checkbox are
+      // the only ways to act on it.
+      if (!checked) {
+        row.querySelector('[data-action="edit"]').addEventListener("click", () => openEditor(item, sections));
+      }
+
+      wireSwipe(swipeRow, row, itemName, checked);
+    });
+  }
+
+  function toggleActive(itemName, row, btn) {
+    const nextActive = row.classList.contains("checked");
+    // Show the toggle instantly so the click/swipe registers before the list
+    // reshuffles (rows moving to/from "Added to Cart" shifts everything below them
+    // into place).
+    btn.classList.toggle("checked", !nextActive);
+    row.classList.toggle("checked", !nextActive);
+    background(window.Store.updateShoppingItem(itemName, { active: nextActive }));
+    setTimeout(render, 250);
+  }
+
+  // Swipe gestures mirror the checkbox/delete actions:
+  //  - Unchecked row, swipe right far enough -> same as checking it off. Swiping left
+  //    is disabled outright (the row doesn't move at all) since there's no action for it.
+  //  - Checked row, swipe left far enough -> same as unchecking it. Swipe right far
+  //    enough -> deletes that single item immediately, no confirmation.
+  const SWIPE_THRESHOLD = 72; // px of horizontal drag before an action commits
+
+  function wireSwipe(swipeRow, row, itemName, checked) {
+    const checkbox = row.querySelector('[data-action="toggle"]');
+    const hintLeft = swipeRow.querySelector('[data-hint="left"]');
+    const hintRight = swipeRow.querySelector('[data-hint="right"]');
+
+    let startX = 0;
+    let startY = 0;
+    let dx = 0;
+    let decided = null; // "horizontal" | "vertical" | null, once the gesture's direction is clear
+
+    // pointermove/up are bound to the document only while a drag is in progress
+    // (rather than relying on setPointerCapture, which drops subsequent move events
+    // for a row that was already dragged once in some browsers) so the gesture keeps
+    // tracking even if the pointer strays off the row during a fast swipe.
+    function onMove(e) {
+      const rawDx = e.clientX - startX;
+      const rawDy = e.clientY - startY;
+
+      // Prevent the browser's own touch handling (e.g. scroll) from taking over and
+      // cancelling this pointer sequence (a pointercancel) while direction is still
+      // ambiguous — must happen on every move during an active drag, not just once
+      // horizontal intent is confirmed below.
+      e.preventDefault();
+
+      if (!decided) {
+        if (Math.abs(rawDx) < 8 && Math.abs(rawDy) < 8) return;
+        decided = Math.abs(rawDx) > Math.abs(rawDy) ? "horizontal" : "vertical";
+        if (decided === "horizontal") swipeRow.classList.add("dragging");
+      }
+      if (decided !== "horizontal") return;
+
+      // Unchecked rows never move leftward — there's no left action for them, so the
+      // tile should visually stay put rather than hint at something draggable.
+      dx = checked ? rawDx : Math.max(0, rawDx);
+
+      row.style.transform = `translateX(${dx}px)`;
+      hintLeft && hintLeft.classList.toggle("visible", dx < -20);
+      hintRight && hintRight.classList.toggle("visible", dx > 20);
+    }
+
+    function onUp() {
+      document.removeEventListener("pointermove", onMove);
+      document.removeEventListener("pointerup", onUp);
+      document.removeEventListener("pointercancel", onUp);
+      swipeRow.classList.remove("dragging");
+
+      const committed = Math.abs(dx) >= SWIPE_THRESHOLD;
+      row.style.transform = "";
+      hintLeft && hintLeft.classList.remove("visible");
+      hintRight && hintRight.classList.remove("visible");
+
+      if (!committed) { dx = 0; return; }
+
+      if (!checked && dx > 0) {
+        toggleActive(itemName, row, checkbox);
+      } else if (checked && dx < 0) {
+        toggleActive(itemName, row, checkbox);
+      } else if (checked && dx > 0) {
+        swipeRow.style.opacity = "0";
+        background(window.Store.deleteShoppingItem(itemName));
+        setTimeout(render, 200);
+      }
+      dx = 0;
+    }
+
+    row.addEventListener("pointerdown", (e) => {
+      if (e.button !== undefined && e.button !== 0) return;
+      startX = e.clientX;
+      startY = e.clientY;
+      dx = 0;
+      decided = null;
+      document.addEventListener("pointermove", onMove);
+      document.addEventListener("pointerup", onUp);
+      document.addEventListener("pointercancel", onUp);
     });
   }
 
@@ -128,7 +233,6 @@ window.ViewShopping = (function () {
       </div>
 
       <button class="btn btn-primary btn-full" id="btn-save">${isNew ? "Add to List" : "Save Changes"}</button>
-      ${isNew ? "" : `<button class="btn btn-secondary btn-full" id="btn-delete">Remove from List</button>`}
     `;
 
     document.getElementById("btn-close").addEventListener("click", closeEditor);
@@ -159,24 +263,6 @@ window.ViewShopping = (function () {
       }
     });
 
-    const deleteBtn = document.getElementById("btn-delete");
-    if (deleteBtn) {
-      deleteBtn.addEventListener("click", async () => {
-        if (!confirm(`Remove "${originalName}" from your shopping list?`)) return;
-        deleteBtn.disabled = true;
-        deleteBtn.innerHTML = `<span class="btn-spinner btn-spinner--dark" aria-hidden="true"></span>`;
-        try {
-          await window.Store.deleteShoppingItem(originalName);
-          closeEditor();
-          render();
-        } catch (err) {
-          alert(err.message || "Couldn't remove that item. Please try again.");
-          deleteBtn.disabled = false;
-          deleteBtn.textContent = "Remove from List";
-        }
-      });
-    }
-
     overlay().classList.add("active");
     document.getElementById("f-item").focus();
   }
@@ -193,6 +279,8 @@ window.ViewShopping = (function () {
   function iconPlus() { return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>`; }
   function iconTrash() { return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>`; }
   function iconCancel() { return `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>`; }
+  function iconCheck() { return `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>`; }
+  function iconUndo() { return `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>`; }
 
   return { render };
 })();
