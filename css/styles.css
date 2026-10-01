@@ -1025,6 +1025,16 @@ main:has(.view.active .toolbar) {
   transition-property: left, top, transform;
   transition-timing-function: linear;
   touch-action: manipulation;
+  /* Suppress the default mobile tap-highlight rectangle and focus outline a <button>
+     otherwise gets on tap — without this, tapping the cat shows a blue/gray box
+     around her instead of just her own tap reaction (startled/purr animation). */
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+.cat-sprite:focus,
+.cat-sprite:focus-visible {
+  outline: none;
 }
 
 .cat-sprite__pivot,
