@@ -32,7 +32,7 @@
   /* Design-space height on desktop only (see the min-width: 480px media query below);
      real phones always use their actual viewport height instead (max-width: 479px
      media query), so this only affects the PC/desktop preview frame. */
-  --phone-height: 750px;
+  --phone-height: 720px;
   --header-height: 64px;
   --nav-height: 54px;
 }
