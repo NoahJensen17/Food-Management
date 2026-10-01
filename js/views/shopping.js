@@ -58,7 +58,7 @@ window.ViewShopping = (function () {
 
     let html = "";
     if (active.length) {
-      html += `<div class="section-heading">Shopping List</div><div class="list">${active.map((i) => rowHtml(i)).join("")}</div>`;
+      html += `<div class="section-heading">Items to Purchase</div><div class="list">${active.map((i) => rowHtml(i)).join("")}</div>`;
     }
     if (checked.length) {
       html += `<div class="section-heading">Added to Cart</div><div class="list">${checked.map((i) => rowHtml(i)).join("")}</div>`;
