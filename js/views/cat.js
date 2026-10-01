@@ -37,6 +37,11 @@ window.CatWidget = (function () {
   // listener on a detached sprite node — see render()'s call below for why that
   // matters (each Home visit creates a brand-new sprite element).
   let flushPendingArrival = null;
+  // Tracks an in-progress purr so a second tap within PURR_QUEUE_WINDOW_MS of it
+  // starting can queue one more purr to play immediately after, instead of being
+  // ignored — see onTap's "purring" branch and purrThenResume below.
+  let purrStartedAt = 0;
+  let purrQueued = false;
 
   // Depth scale: 1 at the bottom (closest), shrinking toward the horizon (furthest),
   // so the same sprite reads as "further back in the room" rather than just "higher up".
@@ -333,7 +338,19 @@ window.CatWidget = (function () {
       });
       return;
     }
-    if (state === "startled" || state === "purring") return;
+    if (state === "startled") return;
+
+    // Tapping again while she's already purring queues one more purr to play right
+    // after the current one finishes, instead of being ignored — but only within the
+    // first PURR_QUEUE_WINDOW_MS of the current purr starting, so a tap long after it
+    // was already winding down doesn't feel like an unexpected continuation. The
+    // vibration itself isn't retriggered here — it starts fresh when the queued purr
+    // actually begins (see purrThenResume), so the haptic pattern doesn't overlap with
+    // the one still playing from the current purr.
+    if (state === "purring") {
+      if (Date.now() - purrStartedAt < PURR_QUEUE_WINDOW_MS) purrQueued = true;
+      return;
+    }
 
     if (state === "sitting") {
       clearTimers();
@@ -369,6 +386,11 @@ window.CatWidget = (function () {
   // "Purr" text stays on screen for roughly as long as the device is vibrating.
   const PURR_VIBRATION_PATTERN = [120, 40, 150, 35, 110, 40, 160, 35, 130, 40, 150, 35, 120, 40, 140, 35, 130, 40, 150];
   const PURR_DISPLAY_MS = 1700;
+  // A tap during an active purr only extends it if it lands within this window of the
+  // purr starting — a tap arriving well after that (even though she's technically
+  // still "purring" for the last bit of PURR_DISPLAY_MS) reads more like a fresh,
+  // separate tap than a continuation, so it's left alone rather than queued.
+  const PURR_QUEUE_WINDOW_MS = 2000;
 
   function vibrate() {
     if (navigator.vibrate) navigator.vibrate(PURR_VIBRATION_PATTERN);
@@ -380,9 +402,29 @@ window.CatWidget = (function () {
   // that vibrates the device — startled/no-op taps don't. The "Purr" text stays up for
   // PURR_DISPLAY_MS, matched to the vibration pattern's own length above so the visual
   // and haptic feedback end at roughly the same time.
+  //
+  // If a second tap queued another purr (see onTap's "purring" branch) while this one
+  // was playing, chain straight into another purr instead of returning to sitting —
+  // this is what makes rapid re-tapping read as one continued purr rather than two
+  // separate, visibly interrupted reactions.
   function purrThenResume() {
+    purrStartedAt = Date.now();
+    purrQueued = false;
+    // Chaining straight from "purring" into "purring" again (the queued-purr case)
+    // writes the exact same data-state value, which the CSS [data-state="purring"]
+    // animations don't restart on their own — forcing a reflow in between makes the
+    // browser treat it as a genuinely fresh animation start rather than a no-op.
+    if (state === "purring") {
+      spriteEl.dataset.state = "";
+      void spriteEl.offsetWidth;
+    }
     setState("purring");
     after(PURR_DISPLAY_MS, () => {
+      if (purrQueued) {
+        vibrate();
+        purrThenResume();
+        return;
+      }
       setState("sitting");
       after(randBetween(1500, 3000), () => scheduleNextWalk(200));
     });
