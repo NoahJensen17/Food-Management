@@ -237,30 +237,24 @@ window.ViewShopping = (function () {
 
     document.getElementById("btn-close").addEventListener("click", closeEditor);
 
-    document.getElementById("btn-save").addEventListener("click", async () => {
+    document.getElementById("btn-save").addEventListener("click", () => {
       const itemText = document.getElementById("f-item").value.trim();
       if (!itemText) return;
       const quantity = Number(document.getElementById("f-qty").value) || 1;
       const section = document.getElementById("f-section").value;
 
-      const saveBtn = document.getElementById("btn-save");
-      saveBtn.disabled = true;
-      saveBtn.classList.add("is-loading");
-      saveBtn.innerHTML = `<span class="btn-spinner" aria-hidden="true"></span>Saving…`;
-      try {
-        if (isNew) {
-          await window.Store.addShoppingItem({ item: itemText, quantity, section, active: true });
-        } else {
-          await window.Store.updateShoppingItem(originalName, { item: itemText, quantity, section });
-        }
-        closeEditor();
-        render();
-      } catch (err) {
-        alert(err.message || "Couldn't save that item. Please try again.");
-        saveBtn.disabled = false;
-        saveBtn.classList.remove("is-loading");
-        saveBtn.textContent = isNew ? "Add to List" : "Save Changes";
+      // Optimistic, like every other shopping-list action: Store's in-memory cache is
+      // already updated synchronously inside addShoppingItem/updateShoppingItem, so the
+      // overlay can close and the list redraw immediately instead of waiting on the
+      // network round-trip to Apps Script. Only an actual failure needs to interrupt
+      // the user, via background()'s alert+re-render.
+      if (isNew) {
+        background(window.Store.addShoppingItem({ item: itemText, quantity, section, active: true }));
+      } else {
+        background(window.Store.updateShoppingItem(originalName, { item: itemText, quantity, section }));
       }
+      closeEditor();
+      render();
     });
 
     overlay().classList.add("active");
