@@ -129,9 +129,10 @@ window.ViewShopping = (function () {
   }
 
   function wireList() {
+    // The whole row is the tap target; the checkbox button's clicks bubble up to it.
     el().querySelectorAll('[data-action="toggle"]').forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        const row = e.target.closest(".list-row");
+      const row = btn.closest(".list-row");
+      row.addEventListener("click", () => {
         const itemName = row.dataset.item;
         // Read the current state from the DOM so rapid re-clicks flip correctly even
         // before the delayed re-render below has run.

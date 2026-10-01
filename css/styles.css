@@ -300,6 +300,10 @@ main:has(#view-home.active) {
   gap: 10px;
 }
 
+.list-row:has(.checkbox) {
+  cursor: pointer;
+}
+
 .list-row {
   display: flex;
   align-items: center;
