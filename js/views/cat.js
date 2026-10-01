@@ -665,13 +665,67 @@ window.CatWidget = (function () {
     return v === "away" ? catSvgAway() : catSvgToward();
   }
 
-  // True once the cat has been initialized for this page load. The Home screen's
-  // container div gets destroyed and recreated every time you navigate back to it
-  // (innerHTML replacement in home.js), but the cat's own state/timers live in this
-  // module's closure and keep running the whole time regardless — so re-visiting Home
-  // just needs to rebuild the DOM to reflect whatever the cat is currently doing,
-  // rather than resetting her back to sitting-on-the-rug like a fresh app load would.
+  // True once the cat has been initialized for this page load. Unlike most other
+  // views, home.js builds the Home screen's DOM (and calls CatWidget.render) only
+  // once per page load and then just hides/shows it with a CSS class — so render()
+  // itself only ever runs once. The cat's own state/timers live in this module's
+  // closure and keep running the whole time regardless of whether Home is the
+  // visible tab, exactly as intended; see resyncVisual()/viewObserver below for how
+  // her position catches back up visually once Home becomes visible again.
   let initialized = false;
+
+  // Snaps/resumes the sprite's visual position to match real elapsed time: either
+  // mid-walk (resuming the CSS slide from wherever she should actually be right now)
+  // or stationary (instant snap, no transition). Pulled out of render() so it can
+  // also run every time the Home tab regains visibility — see viewObserver below —
+  // since render() itself only runs once (home.js keeps the DOM alive and just
+  // toggles display via CSS, so a transition left running while display:none is
+  // applied gets paused by the browser and does not resume in sync with real time on
+  // its own; this resync is what actually prevents the teleport-on-return.)
+  function resyncVisual() {
+    if (!spriteEl) return;
+    if (activeWalk) {
+      const interpolated = currentInterpolatedPos();
+      const remainingMs = activeWalk.startTime + activeWalk.durationMs - Date.now();
+      spriteEl.style.transitionDuration = "0s";
+      pos = interpolated;
+      positionSprite();
+      if (remainingMs > 0) {
+        // Force layout so the "0s" snap above is actually committed before starting
+        // a new transition — otherwise the browser could coalesce both style changes
+        // into one paint and the slide would never visibly start from this point.
+        void spriteEl.offsetWidth;
+        spriteEl.style.transitionDuration = remainingMs / 1000 + "s";
+        pos = { x: activeWalk.targetX, y: activeWalk.targetY };
+        positionSprite();
+      } else {
+        // The walk's duration has already fully elapsed while hidden (its arrival
+        // timer just hasn't fired yet, which happens within ~150ms per walkTo's own
+        // fallback) — show her already at the destination.
+        pos = { x: activeWalk.targetX, y: activeWalk.targetY };
+        positionSprite();
+      }
+    } else {
+      spriteEl.style.transitionDuration = "0s";
+      positionSprite();
+    }
+  }
+
+  // Home's container (.view#view-home) is kept in the DOM permanently and toggled
+  // via a CSS class (see app.js's showView), not rebuilt — so render() only runs
+  // once per page load and can't be relied on to catch the moment the user switches
+  // back to Home. Watching the ancestor .view's class directly is what lets
+  // resyncVisual() run exactly when it needs to.
+  let viewObserver = null;
+
+  function watchViewVisibility() {
+    const viewEl = root.closest(".view");
+    if (!viewEl || viewObserver) return;
+    viewObserver = new MutationObserver(() => {
+      if (viewEl.classList.contains("active")) resyncVisual();
+    });
+    viewObserver.observe(viewEl, { attributes: true, attributeFilter: ["class"] });
+  }
 
   function render(container) {
     root = container;
@@ -701,42 +755,8 @@ window.CatWidget = (function () {
     spriteEl = root.querySelector("#cat-sprite");
     spriteEl.addEventListener("click", onTap);
 
-    if (activeWalk) {
-      // A walk was still in progress when this tab was last left — rather than
-      // snapping straight to pos (the walk's final destination, set synchronously
-      // back when walkTo() started it) or force-completing it early, resume the
-      // visual slide from wherever she should actually be right now given real
-      // elapsed time, continuing on to the same original target over whatever
-      // duration is left. The walk's own arrival timer (set up in walkTo) is
-      // untouched and keeps running regardless of this tab's visibility, so the
-      // logical arrival still happens at the correct real-world time either way —
-      // this only restores the visual motion to match it.
-      const interpolated = currentInterpolatedPos();
-      const remainingMs = activeWalk.startTime + activeWalk.durationMs - Date.now();
-      spriteEl.style.transitionDuration = "0s";
-      pos = interpolated;
-      positionSprite();
-      if (remainingMs > 0) {
-        // Force layout so the "0s" snap above is actually committed before starting
-        // a new transition — otherwise the browser could coalesce both style changes
-        // into one paint and the slide would never visibly start from this point.
-        void spriteEl.offsetWidth;
-        spriteEl.style.transitionDuration = remainingMs / 1000 + "s";
-        pos = { x: activeWalk.targetX, y: activeWalk.targetY };
-        positionSprite();
-      } else {
-        // The walk's duration has already fully elapsed while this tab was hidden
-        // (its arrival timer just hasn't fired yet, which happens within ~150ms per
-        // walkTo's own fallback) — show her already at the destination.
-        pos = { x: activeWalk.targetX, y: activeWalk.targetY };
-        positionSprite();
-      }
-    } else {
-      // Not walking — snap to the current position/pose instantly (no transition),
-      // since this is a DOM rebuild reflecting existing state, not a walk in progress.
-      spriteEl.style.transitionDuration = "0s";
-      positionSprite();
-    }
+    resyncVisual();
+    watchViewVisibility();
 
     if (!initialized) {
       initialized = true;
@@ -755,16 +775,16 @@ window.CatWidget = (function () {
     }
   }
 
-  // Only unhooks this container's DOM listener; does NOT clear timers or reset state,
-  // so the cat keeps "living" (walking/sitting/sleeping on her own schedule) while the
-  // user is on another tab. If a timer fires while the Home screen is elsewhere,
-  // spriteEl/root are detached but still-valid DOM nodes — style writes on them are
-  // harmless no-ops (nothing visible), and roomSize()'s getBoundingClientRect() just
-  // returns zeros, which walkTo() already floors to a minimum 0.6s duration rather than
-  // dividing by zero. The next render() rebuilds the DOM from the current state/pos, so
-  // nothing is lost — the cat just "teleports" the DOM to wherever she already was.
+  // Not called during normal navigation (home.js keeps Home's DOM alive permanently
+  // and just hides/shows it — see watchViewVisibility above), only available for
+  // tests/full teardown. Unhooks listeners/observers; does NOT clear timers or reset
+  // state, so the cat keeps "living" in the background regardless.
   function destroy() {
     if (spriteEl) spriteEl.removeEventListener("click", onTap);
+    if (viewObserver) {
+      viewObserver.disconnect();
+      viewObserver = null;
+    }
   }
 
   return { render, destroy };
