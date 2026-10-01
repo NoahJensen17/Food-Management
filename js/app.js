@@ -17,7 +17,7 @@
     if (!VIEWS[name]) name = "home";
     document.querySelectorAll(".view").forEach((el) => el.classList.remove("active"));
     document.getElementById(`view-${name}`).classList.add("active");
-    document.getElementById("header-title").textContent = VIEWS[name].title;
+    document.title = VIEWS[name].title === "Home" ? "Meal Planner" : VIEWS[name].title + " · Meal Planner";
     setActiveNav(name);
     VIEWS[name].render();
     window.location.hash = name;
