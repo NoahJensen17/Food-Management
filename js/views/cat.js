@@ -396,15 +396,29 @@ window.CatWidget = (function () {
   // navigator.vibrate() once called from inside a setTimeout callback, since by then
   // it's no longer considered part of the original user gesture. Every call site
   // below calls this directly from onTap, never from a delayed callback.
-  // A real purr isn't one flat buzz — it's a longer, rolling rumble. The Vibration API
-  // can't vary amplitude, only on/off timing, so this approximates that rolling feel
-  // with a pattern of alternating buzzes and brief pauses of varying length (longer
-  // buzzes read as the "louder" part of the rumble, short gaps as it dips), totaling
-  // about 1.8s — long enough to actually feel like a purr rather than a tap blip.
+  // A real purr isn't one flat buzz or a jolty on/off alternation — it swells and
+  // fades smoothly. The Vibration API can't vary amplitude directly, only on/off
+  // timing, so this approximates a crescendo/decrescendo by varying the *duty cycle*:
+  // pulses start short with long gaps between them (feels faint), get longer with
+  // shorter gaps toward the middle (denser pulsing reads as more intense), then ease
+  // back down the same way — a smooth rise and fall rather than back-and-forth jolts.
   // PURR_DISPLAY_MS (used below in purrThenResume) is kept in sync with this so the
-  // "Purr" text stays on screen for roughly as long as the device is vibrating.
-  const PURR_VIBRATION_PATTERN = [120, 40, 150, 35, 110, 40, 160, 35, 130, 40, 150, 35, 120, 40, 140, 35, 130, 40, 150];
-  const PURR_DISPLAY_MS = 1700;
+  // "Purr" text stays on screen for exactly as long as the device is vibrating.
+  function buildPurrVibrationPattern(totalMs) {
+    const steps = 14;
+    const pattern = [];
+    for (let i = 0; i < steps; i++) {
+      const t = i / (steps - 1);
+      const intensity = t < 0.5 ? t * 2 : (1 - t) * 2; // triangular envelope: 0 -> 1 -> 0
+      pattern.push(20 + intensity * 45, 55 - intensity * 40); // vibrate, pause
+    }
+    const rawTotal = pattern.reduce((a, b) => a + b, 0);
+    const scale = totalMs / rawTotal;
+    return pattern.map((ms) => Math.max(10, Math.round(ms * scale)));
+  }
+
+  const PURR_DISPLAY_MS = 2000;
+  const PURR_VIBRATION_PATTERN = buildPurrVibrationPattern(PURR_DISPLAY_MS);
   // A tap during an active purr only extends it if it lands within this window of the
   // purr starting — a tap arriving well after that (even though she's technically
   // still "purring" for the last bit of PURR_DISPLAY_MS) reads more like a fresh,
