@@ -1,7 +1,7 @@
 window.ViewRecipes = (function () {
   const el = () => document.getElementById("view-recipes");
-  const overlay = () => document.getElementById("recipe-overlay");
-  const panel = () => document.getElementById("recipe-overlay-panel");
+  const overlay = () => document.getElementById("app-overlay");
+  const panel = () => document.getElementById("app-overlay-panel");
 
   async function render() {
     const recipes = await window.Store.getRecipes();

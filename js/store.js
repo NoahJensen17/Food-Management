@@ -290,6 +290,11 @@ window.Store = (function () {
     return syncShoppingWrite("deleteCheckedShoppingItems", {});
   }
 
+  function deleteShoppingItem(item) {
+    if (shoppingCache) shoppingCache = shoppingCache.filter((i) => !sameItem(i.item, item));
+    return syncShoppingWrite("deleteShoppingItem", { item });
+  }
+
   // ---- Messages (Sheets-backed, read-only) ----
 
   async function getMessages() {
@@ -311,6 +316,7 @@ window.Store = (function () {
     addShoppingItem,
     updateShoppingItem,
     deleteCheckedShoppingItems,
+    deleteShoppingItem,
 
     // Tasks / to-do (Planning screen) — unchanged, localStorage-only
     getTasks: () => getAllLocal("tasks"),

@@ -362,7 +362,9 @@ main:has(.view.active .toolbar) {
   gap: 10px;
 }
 
-.list-row:has(.checkbox) {
+/* Planning's tasks list still uses the whole row as the checkbox's tap target (no
+   separate body/edit affordance), so it keeps the pointer cursor across the full row. */
+.list-row:has(.checkbox):not(:has(.list-row__body)) {
   cursor: pointer;
 }
 
@@ -382,8 +384,14 @@ main:has(.view.active .toolbar) {
   text-decoration: line-through;
 }
 
-.list-row__title {
+/* Shopping's rows split the tap target: the checkbox toggles active/checked, and the
+   rest of the row (item name + section) opens it for editing — see shopping.js. */
+.list-row__body {
   flex: 1;
+  cursor: pointer;
+}
+
+.list-row__title {
   font-weight: 500;
   color: var(--ink);
 }

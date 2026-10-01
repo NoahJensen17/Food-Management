@@ -19,6 +19,7 @@ function doPost(e) {
       case "addShoppingItem": result = addShoppingItem(body); break;
       case "updateShoppingItem": result = updateShoppingItem(body); break;
       case "deleteCheckedShoppingItems": result = deleteCheckedShoppingItems(); break;
+      case "deleteShoppingItem": result = deleteShoppingItem(body); break;
       case "addRecipe": result = addRecipe(body); break;
       case "updateRecipe": result = updateRecipe(body); break;
       case "deleteRecipe": result = deleteRecipe(body); break;
@@ -120,6 +121,16 @@ function deleteCheckedShoppingItems() {
   const toDelete = rows.filter((r) => Number(r.values[activeCol]) === 0);
   deleteRowNumbers(sheet, toDelete.map((r) => r.rowNumber));
   return { deleted: toDelete.length };
+}
+
+// body: { item } — deletes a single shopping item by ingredient name, regardless of
+// its Active Flag (unlike deleteCheckedShoppingItems, which only clears checked-off
+// items in bulk).
+function deleteShoppingItem(body) {
+  const { sheet, match } = findShoppingRowByIngredient(body.item);
+  if (!match) throw new Error("Shopping item not found: " + body.item);
+  deleteRowNumbers(sheet, [match.rowNumber]);
+  return { deleted: true };
 }
 
 // ---------- Recipes + Instructions ----------
