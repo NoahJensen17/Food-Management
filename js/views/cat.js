@@ -431,8 +431,6 @@ window.CatWidget = (function () {
              the top of the head toward the black side. Eyes are amber/gold. -->
           <path d="M34 38 L26 14 L48 30Z" fill="#d17a2e"/>
           <path d="M86 38 L94 14 L72 30Z" fill="#d17a2e"/>
-          <path d="M85 33 L90 19 L76 29Z" fill="#f2b9c4"/>
-
           <circle class="cat-head" cx="60" cy="46" r="30" fill="#faf6ee"/>
 
           <!-- Black band that fully encircles the orange crown patch (drawn next):
