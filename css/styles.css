@@ -222,10 +222,29 @@ main:has(#view-home.active) {
 /* ---------- Home ---------- */
 
 .home-greeting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   font-size: 20px;
   font-weight: 700;
   color: var(--orange-600);
   margin-bottom: 4px;
+}
+
+.app-refresh-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--orange-500);
+  cursor: pointer;
+}
+
+.app-refresh-icon:hover {
+  background: var(--orange-50);
 }
 
 /* Home-specific spacing trims to fit the weather/verse/cat cards within a typical

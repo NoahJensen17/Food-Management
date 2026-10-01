@@ -30,7 +30,12 @@ window.ViewHome = (function () {
     if (weather) weatherLoadedAt = Date.now();
 
     el().innerHTML = `
-      <div class="home-greeting">Welcome, ${cfg.greetingName}</div>
+      <div class="home-greeting">
+        <span>Welcome, ${cfg.greetingName}</span>
+        <button class="app-refresh-icon" id="app-refresh" title="Refresh app" aria-label="Refresh app">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+        </button>
+      </div>
 
       <div class="home-grid">
         <div class="card" id="weather-card">
@@ -53,6 +58,7 @@ window.ViewHome = (function () {
     `;
 
     document.getElementById("refresh-weather").addEventListener("click", () => loadWeather());
+    document.getElementById("app-refresh").addEventListener("click", () => location.reload());
     window.CatWidget.render(document.getElementById("cat-widget"));
   }
 
