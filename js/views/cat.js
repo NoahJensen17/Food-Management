@@ -105,14 +105,13 @@ window.CatWidget = (function () {
     spriteEl.querySelector(".cat-sprite__pose").innerHTML = catSvgFor(view);
   }
 
-  // Sits facing the user ("toward") 70% of the time, and facing away ("away") the
-  // other 30% — but facing away while sitting is only ever allowed on the rug (a
-  // cat curled up with her back to the room reads naturally there, not in the open
-  // floor), so onRug must be true for the 30% roll to actually take effect; off the
-  // rug she always sits facing toward regardless of the roll.
+  // Sitting direction is strictly tied to location: on the rug she always sits facing
+  // away, off the rug she always sits facing toward the user. The on-rug/off-rug split
+  // itself (30%/70%) is decided and enforced by decideSitSpot below, which walks her
+  // to a matching spot first if she isn't already there — so this exact ratio holds
+  // regardless of how often she happens to already be on the rug when a sit fires.
   function sitDown(onRug) {
-    const sitFacingAway = onRug && Math.random() < 0.3;
-    setView(sitFacingAway ? "away" : "toward");
+    setView(onRug ? "away" : "toward");
     setState("sitting");
   }
 
@@ -131,10 +130,10 @@ window.CatWidget = (function () {
   // There is no mirroring and no side view at all, so there is nothing that can ever
   // visually "flip" — sideways and diagonal moves just slide the front/back pose to its
   // new spot, the same way up/down moves already did.
-  // sleepOnArrival: when true, arriving skips the normal onArrive random roll and goes
-  // straight into the lie-down-then-sleep sequence at the destination just walked to —
-  // used when a sleep decision (and target spot) has already been made.
-  function walkTo(targetX, targetY, sleepOnArrival) {
+  // onArrivalOverride: when given, arriving skips the normal onArrive random roll and
+  // calls this instead — used when a decision (and target spot) has already been made
+  // before the walk started, e.g. "lie down and sleep here" or "sit here facing away".
+  function walkTo(targetX, targetY, onArrivalOverride) {
     const { width, height } = roomSize();
     const dx = ((targetX - pos.x) / 100) * width;
     const dy = ((targetY - pos.y) / 100) * height;
@@ -163,7 +162,7 @@ window.CatWidget = (function () {
     // callback once; render()'s own snap-to-pos logic (on the fresh node) then shows
     // her already arrived, never mid-slide.
     const thisSpriteEl = spriteEl;
-    const onDone = sleepOnArrival ? startLyingDown : onArrive;
+    const onDone = onArrivalOverride || onArrive;
     let settled = false;
     const cleanup = () => {
       thisSpriteEl.removeEventListener("transitionend", onTransitionEnd);
@@ -222,25 +221,19 @@ window.CatWidget = (function () {
 
     if (onRug) {
       if (roll < 0.35) {
-        if (sleepSuppressed) {
-          sitDown(true);
-          after(randBetween(SIT_MIN_MS, SIT_MAX_MS), () => scheduleNextWalk(200));
-        } else decideSleepSpot(true);
+        if (sleepSuppressed) decideSitSpot(true);
+        else decideSleepSpot(true);
       } else if (roll < 0.7) {
-        sitDown(true);
-        after(randBetween(SIT_MIN_MS, SIT_MAX_MS), () => scheduleNextWalk(200));
+        decideSitSpot(true);
       } else scheduleNextWalk(randBetween(400, 1500));
       return;
     }
 
     if (roll < 0.12) {
-      if (sleepSuppressed) {
-        sitDown(false);
-        after(randBetween(SIT_MIN_MS, SIT_MAX_MS), () => scheduleNextWalk(200));
-      } else decideSleepSpot(false);
+      if (sleepSuppressed) decideSitSpot(false);
+      else decideSleepSpot(false);
     } else if (roll < 0.3) {
-      sitDown(false);
-      after(randBetween(SIT_MIN_MS, SIT_MAX_MS), () => scheduleNextWalk(200));
+      decideSitSpot(false);
     } else if (roll < 0.65) {
       scheduleNextWalk(randBetween(400, 1500));
     } else {
@@ -258,11 +251,37 @@ window.CatWidget = (function () {
     if (sleepOnRug && alreadyOnRug) {
       startLyingDown();
     } else if (sleepOnRug) {
-      after(200, () => walkTo(RUG.x, RUG.y, true));
+      after(200, () => walkTo(RUG.x, RUG.y, startLyingDown));
     } else {
       const targetY = randBetween(FLOOR_TOP, FLOOR_BOTTOM);
       const { left, right } = floorXRange(targetY);
-      after(200, () => walkTo(randBetween(left, right), targetY, true));
+      after(200, () => walkTo(randBetween(left, right), targetY, startLyingDown));
+    }
+  }
+
+  // Sitting location is rolled first (30% on the rug, 70% elsewhere on the floor) and
+  // walked to if she isn't already there, exactly like decideSleepSpot above — this
+  // guarantees the overall on-rug/off-rug sit ratio regardless of how often she happens
+  // to already be on the rug when a sit decision fires. Facing direction then follows
+  // deterministically from location: always away on the rug, always toward elsewhere.
+  function decideSitSpot(alreadyOnRug) {
+    const sitOnRug = Math.random() < 0.3;
+
+    if (sitOnRug === alreadyOnRug) {
+      sitDown(sitOnRug);
+      after(randBetween(SIT_MIN_MS, SIT_MAX_MS), () => scheduleNextWalk(200));
+    } else if (sitOnRug) {
+      after(200, () => walkTo(RUG.x, RUG.y, () => {
+        sitDown(true);
+        after(randBetween(SIT_MIN_MS, SIT_MAX_MS), () => scheduleNextWalk(200));
+      }));
+    } else {
+      const targetY = randBetween(FLOOR_TOP, FLOOR_BOTTOM);
+      const { left, right } = floorXRange(targetY);
+      after(200, () => walkTo(randBetween(left, right), targetY, () => {
+        sitDown(false);
+        after(randBetween(SIT_MIN_MS, SIT_MAX_MS), () => scheduleNextWalk(200));
+      }));
     }
   }
 
@@ -332,7 +351,9 @@ window.CatWidget = (function () {
 
   // Sitting or (just-woken) sleeping cat reacts to a tap with a "Purr" text + a quick
   // in-place vibration, then goes back to sitting for a while before wandering again.
+  // This is the only tap reaction that vibrates the device — startled/no-op taps don't.
   function purrThenResume() {
+    if (navigator.vibrate) navigator.vibrate(40);
     setState("purring");
     after(900, () => {
       setState("sitting");
