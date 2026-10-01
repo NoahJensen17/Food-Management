@@ -36,7 +36,9 @@ window.ViewHome = (function () {
         <div class="card" id="weather-card">
           <div class="card-title">Weather &middot; ${cfg.weather.label}</div>
           <div id="weather-body">${weather ? weatherHtml(weather) : "Weather unavailable right now."}</div>
-          <button class="refresh-btn" id="refresh-weather">Refresh Weather</button>
+          <button class="refresh-icon" id="refresh-weather" title="Refresh weather" aria-label="Refresh weather">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+          </button>
         </div>
       </div>
 
@@ -81,13 +83,17 @@ window.ViewHome = (function () {
   // and leave it untouched if the refresh fails.
   async function loadWeather(silent) {
     const body = document.getElementById("weather-body");
-    if (!silent) body.textContent = "Loading…";
+    const btn = document.getElementById("refresh-weather");
+    // The refresh icon spins while loading; the current reading stays on screen.
+    btn.classList.add("spinning");
     try {
       const w = await window.Api.getWeather();
       weatherLoadedAt = Date.now();
       body.innerHTML = weatherHtml(w);
     } catch (e) {
       if (!silent) body.textContent = "Weather unavailable right now.";
+    } finally {
+      btn.classList.remove("spinning");
     }
   }
 
