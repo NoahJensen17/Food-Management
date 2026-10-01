@@ -31,12 +31,17 @@ window.CatWidget = (function () {
   let walkSessionStart = 0; // Date.now() when the current continuous walking session began
   // When a walkTo() is in flight (transitionend not yet seen), this resolves it
   // immediately: state/pos are already the arrival values, so this just runs the
-  // arrival callback (onArrive/startLyingDown) once. Cleared once the arrival has
-  // actually happened. render() calls this before rebuilding the DOM so a walk that
-  // was in flight when the Home tab was left can never survive as a dangling
-  // listener on a detached sprite node — see render()'s call below for why that
-  // matters (each Home visit creates a brand-new sprite element).
+  // arrival callback (onArrive/startLyingDown) once. Used only by clearTimers() for a
+  // genuine interruption (a tap) — she's meant to keep walking naturally in the
+  // background otherwise, so render() deliberately does NOT flush this on a tab
+  // revisit anymore (see render()'s activeWalk handling instead).
   let flushPendingArrival = null;
+  // Tracks an in-progress walk's real start time, start/target position, and duration,
+  // so render() can compute exactly where she should be *right now* (based on real
+  // elapsed time) instead of snapping straight to the final destination when the Home
+  // tab was backgrounded mid-walk — see currentInterpolatedPos() and walkTo() below.
+  // null when not currently walking (or the walk has already visually finished).
+  let activeWalk = null;
   // Tracks an in-progress purr so a second tap within PURR_QUEUE_WINDOW_MS of it
   // starting can queue one more purr to play immediately after, instead of being
   // ignored — see onTap's "purring" branch and purrThenResume below.
@@ -68,6 +73,10 @@ window.CatWidget = (function () {
       flushPendingArrival.cancel();
       flushPendingArrival = null;
     }
+    // The walk being interrupted here is abandoned, not resumed — clear it so
+    // render() (if a tab switch happens next) doesn't try to keep animating toward a
+    // destination that's no longer relevant.
+    activeWalk = null;
   }
 
   function after(ms, fn) {
@@ -80,9 +89,24 @@ window.CatWidget = (function () {
     return min + Math.random() * (max - min);
   }
 
+  // Caches the last known real room size so walk durations stay realistic even while
+  // the Home tab is backgrounded — root.getBoundingClientRect() returns all zeros for
+  // a detached/hidden element, which previously made every walk's distance collapse
+  // to ~0 and its duration floor out to the 0.6s minimum. That made a walk that should
+  // take several seconds instead "complete" almost instantly in the background,
+  // so by the time you switched back, render() had nothing left to animate and just
+  // snapped her straight to the destination — a visible teleport. Falling back to the
+  // last known size keeps the timing realistic so she's genuinely still travelling
+  // when you're not looking, exactly as if you'd been watching the whole time.
+  let lastKnownRoomSize = { width: 0, height: 0 };
+
   function roomSize() {
     const rect = root.getBoundingClientRect();
-    return { width: rect.width, height: rect.height };
+    if (rect.width > 0 && rect.height > 0) {
+      lastKnownRoomSize = { width: rect.width, height: rect.height };
+      return lastKnownRoomSize;
+    }
+    return lastKnownRoomSize;
   }
 
   function setState(next) {
@@ -127,6 +151,23 @@ window.CatWidget = (function () {
     spriteEl.style.transform = `translate(-50%, -50%) scale(${scale})`;
   }
 
+  // Where she should actually be shown right now: if a walk is in progress, linearly
+  // interpolated between its start/target points based on real elapsed time (clamped
+  // to [0,1] in case the walk's duration has already fully elapsed but its arrival
+  // callback hasn't run yet — see render()'s call into this). Otherwise just pos
+  // itself (sitting/sleeping/etc. don't move). This is what makes leaving mid-walk and
+  // coming back feel like she's been travelling the whole time instead of jumping
+  // straight to wherever she was ultimately headed.
+  function currentInterpolatedPos() {
+    if (!activeWalk) return pos;
+    const elapsed = Date.now() - activeWalk.startTime;
+    const t = Math.max(0, Math.min(1, elapsed / activeWalk.durationMs));
+    return {
+      x: activeWalk.startX + (activeWalk.targetX - activeWalk.startX) * t,
+      y: activeWalk.startY + (activeWalk.targetY - activeWalk.startY) * t
+    };
+  }
+
   // Converts a target percentage position into a CSS transition duration proportional
   // to distance, so the cat "walks" at a roughly constant speed instead of a fixed time.
   // The pose is purely a function of the move's vertical component — any downward
@@ -140,8 +181,10 @@ window.CatWidget = (function () {
   // before the walk started, e.g. "lie down and sleep here" or "sit here facing away".
   function walkTo(targetX, targetY, onArrivalOverride) {
     const { width, height } = roomSize();
-    const dx = ((targetX - pos.x) / 100) * width;
-    const dy = ((targetY - pos.y) / 100) * height;
+    const startX = pos.x;
+    const startY = pos.y;
+    const dx = ((targetX - startX) / 100) * width;
+    const dy = ((targetY - startY) / 100) * height;
     const distance = Math.hypot(dx, dy);
     const speed = 36.4; // px per second (28 * 1.3 — 30% faster)
     const duration = Math.max(0.6, distance / speed);
@@ -151,6 +194,11 @@ window.CatWidget = (function () {
     setState("walking");
     spriteEl.style.transitionDuration = duration + "s";
     pos = { x: targetX, y: targetY };
+    // Recorded so render() can show her at the correct in-progress point (based on
+    // real elapsed time) rather than snapping straight to the final destination if
+    // the Home tab is revisited before this walk's CSS transition would have
+    // finished — see currentInterpolatedPos() and render().
+    activeWalk = { startX, startY, targetX, targetY, startTime: Date.now(), durationMs: duration * 1000 };
     positionSprite();
 
     // The pose (e.g. sleeping) must never switch while the sprite is still visually
@@ -161,11 +209,14 @@ window.CatWidget = (function () {
     // browser never fires one (e.g. a zero-distance move that changes no property).
     //
     // If the Home tab is left and re-rendered before either fires, this listener ends
-    // up on a now-detached sprite node and would never fire on its own — flushed
-    // explicitly by render() instead (see flushPendingArrival). pos/state are already
-    // set to the arrival values above, so flushing just means running the arrival
-    // callback once; render()'s own snap-to-pos logic (on the fresh node) then shows
-    // her already arrived, never mid-slide.
+    // up on a now-detached sprite node (thisSpriteEl) and never fires on its own —
+    // but that's fine, since the fallback timer below keeps running regardless of DOM
+    // attachment and still calls onDone() at the correct real-world time. onDone/
+    // setState/setView all write to the module-level spriteEl (not this captured
+    // local), so by the time this fires it correctly updates whatever the *current*
+    // sprite node is, even though it was created after this walk started. render()
+    // uses activeWalk (see walkTo's start) to resume the visual slide from the right
+    // in-progress point instead of flushing/force-completing the walk early.
     const thisSpriteEl = spriteEl;
     const onDone = onArrivalOverride || onArrive;
     let settled = false;
@@ -177,6 +228,7 @@ window.CatWidget = (function () {
       if (settled) return;
       settled = true;
       cleanup();
+      activeWalk = null;
       onDone();
     };
     const onTransitionEnd = (e) => {
@@ -622,15 +674,6 @@ window.CatWidget = (function () {
   let initialized = false;
 
   function render(container) {
-    // Resolve any walk that was still in flight when this tab was last left, before
-    // reading state/pos/view below — see walkTo()'s comment for why this can't just
-    // rely on the old sprite node's own timer/transitionend firing on its own.
-    if (flushPendingArrival) {
-      const flush = flushPendingArrival.flush;
-      flushPendingArrival = null;
-      flush();
-    }
-
     root = container;
     root.innerHTML = `
       <div class="cat-room">
@@ -658,10 +701,42 @@ window.CatWidget = (function () {
     spriteEl = root.querySelector("#cat-sprite");
     spriteEl.addEventListener("click", onTap);
 
-    // Snap to the current position/pose instantly (no transition) — this is a DOM
-    // rebuild reflecting existing state, not a walk in progress.
-    spriteEl.style.transitionDuration = "0s";
-    positionSprite();
+    if (activeWalk) {
+      // A walk was still in progress when this tab was last left — rather than
+      // snapping straight to pos (the walk's final destination, set synchronously
+      // back when walkTo() started it) or force-completing it early, resume the
+      // visual slide from wherever she should actually be right now given real
+      // elapsed time, continuing on to the same original target over whatever
+      // duration is left. The walk's own arrival timer (set up in walkTo) is
+      // untouched and keeps running regardless of this tab's visibility, so the
+      // logical arrival still happens at the correct real-world time either way —
+      // this only restores the visual motion to match it.
+      const interpolated = currentInterpolatedPos();
+      const remainingMs = activeWalk.startTime + activeWalk.durationMs - Date.now();
+      spriteEl.style.transitionDuration = "0s";
+      pos = interpolated;
+      positionSprite();
+      if (remainingMs > 0) {
+        // Force layout so the "0s" snap above is actually committed before starting
+        // a new transition — otherwise the browser could coalesce both style changes
+        // into one paint and the slide would never visibly start from this point.
+        void spriteEl.offsetWidth;
+        spriteEl.style.transitionDuration = remainingMs / 1000 + "s";
+        pos = { x: activeWalk.targetX, y: activeWalk.targetY };
+        positionSprite();
+      } else {
+        // The walk's duration has already fully elapsed while this tab was hidden
+        // (its arrival timer just hasn't fired yet, which happens within ~150ms per
+        // walkTo's own fallback) — show her already at the destination.
+        pos = { x: activeWalk.targetX, y: activeWalk.targetY };
+        positionSprite();
+      }
+    } else {
+      // Not walking — snap to the current position/pose instantly (no transition),
+      // since this is a DOM rebuild reflecting existing state, not a walk in progress.
+      spriteEl.style.transitionDuration = "0s";
+      positionSprite();
+    }
 
     if (!initialized) {
       initialized = true;
